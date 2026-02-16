@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Glosario de Materiales de Arduino</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-black: #0a0a0a;
+            --accent-cyan: #00d9ff;
+            --accent-electric: #7b2cbf;
+            --text-white: #ffffff;
+            --card-bg: #1a1a1a;
+            --hover-glow: rgba(0, 217, 255, 0.3);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Space Mono', monospace;
+            background: var(--primary-black);
+            color: var(--text-white);
+            overflow-x: hidden;
+            min-height: 100vh;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background:
+                repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0, 217, 255, 0.03) 2px, rgba(0, 217, 255, 0.03) 4px),
+                repeating-linear-gradient(90deg, transparent, transparent 2px, rgba(0, 217, 255, 0.03) 2px, rgba(0, 217, 255, 0.03) 4px);
+            pointer-events: none;
+            animation: gridMove 20s linear infinite;
+            z-index: 0;
+        }
+
+        @keyframes gridMove {
+            0% { transform: translate(0, 0); }
+            100% { transform: translate(50px, 50px); }
+        }
+
+        .page-header {
+            position: relative;
+            z-index: 2;
+            padding: 60px 20px 40px;
+            text-align: center;
+            background: linear-gradient(135deg, rgba(10,10,10,0.95), rgba(123,44,191,0.2)),
+                        url('https://images.unsplash.com/photo-1518770660439-4636190af475?w=1920&q=80') center/cover;
+            border-bottom: 2px solid rgba(0, 217, 255, 0.3);
+        }
+
+        .page-header h1 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: clamp(1.5rem, 4vw, 2.8rem);
+            font-weight: 900;
+            color: var(--accent-cyan);
+            letter-spacing: 0.08em;
+            text-shadow:
+                0 0 20px var(--accent-cyan),
+                0 0 40px var(--accent-cyan),
+                0 0 80px rgba(0, 217, 255, 0.5);
+            animation: glowPulse 3s ease-in-out infinite;
+            margin-bottom: 20px;
+        }
+
+        @keyframes glowPulse {
+            0%, 100% { text-shadow: 0 0 20px var(--accent-cyan), 0 0 40px var(--accent-cyan); }
+            50% { text-shadow: 0 0 30px var(--accent-cyan), 0 0 60px var(--accent-cyan), 0 0 90px rgba(0,217,255,0.8); }
+        }
+
+        .page-header::after {
+            content: '';
+            display: block;
+            width: 120px;
+            height: 4px;
+            background: linear-gradient(90deg, transparent, var(--accent-cyan), transparent);
+            margin: 0 auto;
+        }
+
+        .btn-back {
+            display: inline-block;
+            margin-top: 25px;
+            padding: 12px 28px;
+            border: 2px solid var(--accent-cyan);
+            color: var(--text-white);
+            font-family: 'Space Mono', monospace;
+            font-size: 0.85rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            text-decoration: none;
+            border-radius: 8px;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s;
+        }
+
+        .btn-back::before {
+            content: '';
+            position: absolute;
+            top: 0; left: -100%;
+            width: 100%; height: 100%;
+            background: linear-gradient(90deg, transparent, var(--accent-cyan), transparent);
+            transition: left 0.5s;
+        }
+
+        .btn-back:hover::before { left: 100%; }
+        .btn-back:hover {
+            background: var(--accent-cyan);
+            color: var(--primary-black);
+            box-shadow: 0 0 20px var(--hover-glow);
+        }
+
+        .content {
+            position: relative;
+            z-index: 2;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 60px 20px;
+        }
+
+        .glossary-grid {
+            display: grid;
+            gap: 35px;
+        }
+
+        .glossary-item {
+            background: var(--card-bg);
+            border: 2px solid rgba(0, 217, 255, 0.2);
+            border-left: 5px solid var(--accent-cyan);
+            border-radius: 20px;
+            padding: 35px;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            animation: fadeInUp 0.8s ease-out both;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .glossary-item::before {
+            content: '';
+            position: absolute;
+            top: -2px; left: -2px; right: -2px; bottom: -2px;
+            background: linear-gradient(135deg, var(--accent-cyan), var(--accent-electric));
+            border-radius: 20px;
+            opacity: 0;
+            transition: opacity 0.4s;
+            z-index: -1;
+        }
+
+        .glossary-item:hover {
+            transform: translateX(10px);
+            box-shadow: 0 10px 40px rgba(0, 217, 255, 0.25), 0 0 0 1px var(--accent-cyan);
+        }
+
+        .glossary-item:hover::before { opacity: 1; }
+
+        .glossary-item:nth-child(1) { animation-delay: 0.1s; }
+        .glossary-item:nth-child(2) { animation-delay: 0.2s; }
+        .glossary-item:nth-child(3) { animation-delay: 0.3s; }
+        .glossary-item:nth-child(4) { animation-delay: 0.4s; }
+        .glossary-item:nth-child(5) { animation-delay: 0.5s; }
+        .glossary-item:nth-child(6) { animation-delay: 0.6s; }
+        .glossary-item:nth-child(7) { animation-delay: 0.7s; }
+        .glossary-item:nth-child(8) { animation-delay: 0.8s; }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(40px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .glossary-item h3 {
+            font-family: 'Orbitron', sans-serif;
+            color: var(--accent-cyan);
+            margin-bottom: 15px;
+            font-size: 1.3rem;
+            letter-spacing: 0.05em;
+        }
+
+        .glossary-item p {
+            color: rgba(255, 255, 255, 0.75);
+            line-height: 1.9;
+            margin-bottom: 20px;
+            font-size: 0.95rem;
+        }
+
+        .glossary-image {
+            width: 100%;
+            max-width: 500px;
+            height: auto;
+            border-radius: 12px;
+            margin-top: 15px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(0, 217, 255, 0.2);
+            transition: box-shadow 0.3s;
+        }
+
+        .glossary-item:hover .glossary-image {
+            box-shadow: 0 10px 35px rgba(0, 217, 255, 0.3), 0 0 0 2px var(--accent-cyan);
+        }
+
+        .footer {
+            position: relative;
+            z-index: 2;
+            text-align: center;
+            padding: 60px 20px;
+            background: linear-gradient(180deg, transparent, rgba(0, 217, 255, 0.05));
+            border-top: 1px solid rgba(0, 217, 255, 0.2);
+        }
+
+        .team-credits {
+            font-size: 0.95rem;
+            color: rgba(255, 255, 255, 0.65);
+            max-width: 800px;
+            margin: 0 auto;
+            line-height: 1.9;
+        }
+
+        .team-credits strong { color: var(--accent-cyan); font-weight: 700; }
+
+        @media (max-width: 768px) {
+            .glossary-item { padding: 25px 20px; }
+            .glossary-item h3 { font-size: 1.1rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="page-header">
+        <h1>GLOSARIO DE MATERIALES DE ARDUINO</h1>
+        <a href="index.html" class="btn-back">← Volver al Inicio</a>
+    </div>
+
+    <div class="content">
+        <div class="glossary-grid">
+
+            <div class="glossary-item">
+                <h3>Arduino Uno R3</h3>
+                <p>Es una placa popular entre los aficionados a la electrónica DIY que ofrece características como 14 pines de entrada/salida digitales, 6 pines analógicos y un encabezado ICSP (programación serial en circuito). Funciona con el microchip ATmega328P de 16 MHz y proporciona un voltaje de hasta 5V a los componentes conectados. Es una excelente opción para quienes desean iniciarse en la electrónica.</p>
+                <img src="https://images.unsplash.com/photo-1553406830-ef2513450d76?w=500&q=80" alt="Arduino UNO" class="glossary-image">
+            </div>
+
+            <div class="glossary-item">
+                <h3>Arduino Nano</h3>
+                <p>Es muy popular entre los desarrolladores gracias a su pequeño tamaño y a sus considerables capacidades. Comparte muchas de las características del UNO, pero en un formato más pequeño, lo que lo hace ideal para usar en placas de pruebas y otros espacios reducidos. No cuenta con una conexión de alimentación de CC integrada; en su lugar utiliza un puerto mini USB.</p>
+                <img src="https://m.media-amazon.com/images/I/61R1A7CuHTL._AC_UF1000,1000_QL80_.jpg" alt="Arduino Nano" class="glossary-image">
+            </div>
+
+            <div class="glossary-item">
+                <h3>Arduino Micro</h3>
+                <p>Ofrece características similares al Leonardo pero es significativamente más pequeño y solo tiene 12 pines de E/S analógicos junto con sus 20 digitales. Esta placa mide tan solo 18 mm de ancho por 48 mm de largo. Es una de las placas más pequeñas jamás creadas por Arduino. Con esta placa puedes crear un teclado, un ratón u otro dispositivo HID que requiere un espacio mínimo.</p>
+                <img src="https://cdn.soselectronic.com/productdata/8f/79/4409f837/arduino-micro.jpg" alt="Arduino Micro" class="glossary-image">
+            </div>
+
+            <div class="glossary-item">
+                <h3>Arduino Leonardo</h3>
+                <p>Es diferente a las demás placas. Utiliza un chip ATmega32U4 en lugar del ATmega328P. Ofrece más pines de E/S (20), PWM (7) y señales de entrada analógicas (12).</p>
+                <img src="https://cf-images.us-east-1.prod.boltdns.net/v1/static/618591172001/b98c55ab-03ce-4eee-88fd-863bf45df0f4/59063a81-dacb-4a82-8056-555dc696ea1c/1280x720/match/image.jpg" alt="Arduino Leonardo" class="glossary-image">
+            </div>
+
+            <div class="glossary-item">
+                <h3>Arduino Due</h3>
+                <p>Es una actualización más potente del popular Arduino Mega con sus 54 E/S digitales y 12 entradas analógicas. Funciona a 84 MHz solo a 3.3V. Ofrece un procesador Atmel SAM3X8E ARM Cortex-M3 junto con interfaces USB OTG, DAC y JTAG para opciones de conectividad adicionales.</p>
+                <img src="https://store.arduino.cc/cdn/shop/files/A000062_00.front_934x700.jpg?v=1727098247" alt="Arduino Due" class="glossary-image">
+            </div>
+
+            <div class="glossary-item">
+                <h3>Sensor de Temperatura y Humedad DHT11</h3>
+                <p>El DHT11 es un sensor digital que mide temperatura (0-50°C) y humedad relativa (20-90%). Tiene cuatro pines pero solo se usan tres: VCC (alimentación), DATA (señal) y GND (tierra). Es ampliamente utilizado en estaciones meteorológicas caseras.</p>
+                <img src="https://www.steren.com.mx/media/catalog/product/cache/0236bbabe616ddcff749ccbc14f38bf2/image/1946055a7/sensor-de-temperatura-y-humedad-dht11.jpg" alt="Sensor DHT11" class="glossary-image">
+            </div>
+
+            <div class="glossary-item">
+                <h3>Motor DC</h3>
+                <p>Los motores de corriente continua (DC) convierten energía eléctrica en movimiento rotatorio. Su velocidad se controla mediante la variación del voltaje aplicado o usando PWM (Modulación por Ancho de Pulso). Requieren controladores como el L298N para ser manejados por Arduino.</p>
+                <img src="https://natytec.com.mx/wp-content/uploads/2017/10/Icono-1P-MOTOR-DC-3-%E2%80%9012V-150MA-300MA.png" alt="Motor DC" class="glossary-image">
+            </div>
+
+            <div class="glossary-item">
+                <h3>Buzzer Piezoeléctrico</h3>
+                <p>Un buzzer es un componente que produce sonido cuando se le aplica corriente. Los buzzers piezoeléctricos pueden generar diferentes tonos variando la frecuencia de la señal. Son útiles para alarmas, notificaciones y proyectos musicales simples.</p>
+                <img src="https://images.unsplash.com/photo-1608564697071-ddf911d81370?w=500&q=80" alt="Buzzer" class="glossary-image">
+            </div>
+    <div class="page-header">
+        <h1>MODELOS DE SENSOR</h1>
+    </div>
+
+    <div class="content">
+        <div class="glossary-grid">
+
+            <div class="glossary-item">
+                <h3>Modelo de sensor de proximidad ultrasónico</h3>
+                <p>Los sensores de proximidad ultrasónicos detectan objetos sin contacto emitiendo ondas de alta frecuencia. Los modelos populares incluyen el asequible HC-SR04 para robótica (rango de ~4m), el JSN-SR04T impermeable para exteriores, y series industriales como microsonic mic+ (M30) o Pepperl+Fuchs para automatización, ideales para medir niveles, distancias y materiales transparentes.</p>
+                <img src="https://microlab.ec/blog/wp-content/uploads/2021/05/Untitled-design25-1.jpg" alt="Inteligencia Artificial" class="glossary-image">
+            </div>
+
+            <div class="glossary-item">
+                <h3>Microsonic mic+ y pico+</h3>
+                <p>Son sensores ultrasónicos industriales que se usan para medir distancia o detectar objetos sin contacto, usando ondas de ultrasonido.</p>
+                <img src="https://4.imimg.com/data4/CS/NX/ANDROID-1449372/product-500x500.jpeg" alt="Inteligencia Artificial" class="glossary-image">
+            </div>
+
+            <div class="glossary-item">
+                <h3>Baumer US00/UR18</h3>
+                <p>Diseñados para detección de largo alcance (hasta 1000 mm) con zonas ciegas cortas.</p>
+                <img src="https://media.baumer.com/mamfile_1603586_720Wx540H_c.png" alt="Inteligencia Artificial" class="glossary-image">
+            </div>
+
+            <div class="glossary-item">
+                <h3>Serie FW de Keyence</h3>
+                <p>digitales de alta potencia para entornos difíciles.</p>
+                <img src="https://www.keyence.com.mx/img/series/360/91558.png" alt="Inteligencia Artificial" class="glossary-image">
+            </div>
+
+            <div class="glossary-item">
+                <h3>Turck M18</h3>
+                <p>Sensores cilíndricos sellados con compensación de temperatura.</p>
+                <img src="https://www.turck.com.mx/repo/_db_20250704092918_/Graphics/Pic3/00507399_0.png" alt="Inteligencia Artificial" class="glossary-image">
+            </div>
+
+    <div class="page-header">
+        <h1>TIPOS DE LEDS</h1>
+    </div>
+
+    <div class="content">
+        <div class="glossary-grid">
+
+            <div class="glossary-item">
+                <h3>Led tradicional (DIP)</h3>
+                <p>Es el más común.
+                   Tiene forma redonda alargada.
+                   Se usa en proyectos escolares y electrónicos básicos.
+                   Viene en colores como rojo, verde, azul, blanco, amarillo</p>
+                <img src="https://visualled.com/wp-content/uploads/2020/07/LED-DIP.jpg" alt="Inteligencia Artificial" class="glossary-image">
+            </div>
+
+            <div class="glossary-item">
+                <h3>Led SMD (Surface Mount Device)</h3>
+                <p>Es pequeño y plano.
+                    Se usa en tiras Led, focos y pantallas.
+                    Da más iluminación que el tradicional.</p>
+                <img src="https://cdn.pcbonline.com/blog/0805-smd-led.webp" class="glossary-image">
+            </div>
+
+            <div class="glossary-item">
+                <h3>Led Cob (Chip On Board)</h3>
+                <p>Tiene muchos chips LED juntos en una sola placa.
+                    Produce luz muy potente y uniforme.
+                    Se usa en reflectores y lámparas industriales.</p>
+                <img src="https://zoomvisual.com.sg/wp-content/uploads/2024/04/Close-up-of-COB.webp" alt="Deep Learning" class="glossary-image">
+            </div>
+
+            <div class="glossary-item">
+                <h3>Led Monocromático</h3>
+                <p>Emite un solo color (rojo, verde, azul, amarillo, etc).
+                    Se usa en señalización e indicadores.</p>
+                <img src="https://nautilusbr.com/dev/wp-content/uploads/led-smd-80mm-9w-para-piscinas_7.jpg" alt="IA en el móvil" class="glossary-image">
+            </div>
+
+            <div class="glossary-item">
+                <h3>Led RGB</h3>
+                <p>Puede emitir varios colores al combinar rojo, verde y azul.
+                    Se usa en iluminación decorativa y dispositivos electrónicos.</p>
+                <img src="https://m.media-amazon.com/images/I/41uTF1gcs7L._AC_SX679_.jpg" alt="Procesamiento de Lenguaje Natural" class="glossary-image">
+            </div>
+
+            <div class="glossary-item">
+                <h3>Led blanco</h3>
+                <p>Emite luz blanca. Puede ser blanco cálido, neutro o frío, dependiendo del tono de iluminación.</p>
+                <img src="https://www.steren.com.mx/media/catalog/product/cache/bb0cad18a6adb5d17b0efd58f4201a2f/image/15875e17b/led-ultrabrillante-de-5-mm-color-blanco.jpg" alt="Visión por Computadora" class="glossary-image">
+            </div>
+
+            <div class="glossary-item">
+                <h3>Led para pantallas</h3>
+                <p>Se utiliza en televisores y pantallas electrónicas para producir imágenes brillantes y nítidas.</p>
+                <img src="https://i5.walmartimages.com/asr/89f35a9a-cdff-4eda-8a5e-a5917edce057.a0ac1f63886e72d417644d4e009a5030.jpeg?odnHeight=612&odnWidth=612&odnBg=FFFFFF" alt="Visión por Computadora" class="glossary-image">
+            </div>
+
+            <div class="glossary-item">
+                <h3>Oled (Led orgánico)</h3>
+                <p>Es un tipo de led flexible y delgado que se usa en pantallas modernas de celulares y televisores.</p>
+                <img src="https://www.codigoiot.com/wp-content/uploads/2018/10/OLEDcolor.png-300x255.jpeg" alt="Visión por Computadora" class="glossary-image">
+            </div>
+
+            <div class="glossary-item">
+                <h3>¿Qué función tienen las dos patitas del led?</h3>
+                <p>Es el terminal positivo. Debe conectarse al polo positivo de la fuente de alimentación.</p>
+                <img src="https://prototipadolab.com/wp-content/uploads/2017/07/le.jpg" alt="Visión por Computadora" class="glossary-image">
+            </div>
+
+            <div class="glossary-item">
+                <h3>Pata larga (Ánodo +)</h3>
+                <p>Las dos patitas (o terminales) de un Led (Diodo Emisor de Luz) tienen la función de conectar el diodo a un circuito eléctrico, definiendo la polaridad, es decir, el sentido en el que debe fluir la corriente para que el componente funcione correctamente.</p>
+                <img src="https://inputmakers.com/wp-content/uploads/2020/12/Captura-de-Pantalla-2020-12-01-a-les-17.07.47-300x163.png" alt="Visión por Computadora" class="glossary-image">
+            </div>
+
+            <div class="glossary-item">
+                <h3>Pata corta (Cátodo -)</h3>
+                <p>Es el terminal negativo. Debe conectarse a tierra o al negativo de la fuente de alimentación.</p>
+                <img src="https://inputmakers.com/wp-content/uploads/2020/12/Captura-de-Pantalla-2020-12-01-a-les-17.07.47-300x163.png" alt="Visión por Computadora" class="glossary-image">
+            </div>
+        </div>
+    </div>
+
+    <footer class="footer">
+        <div class="team-credits">
+            <strong>Realizado por:</strong><br>
+            PEREZ HERNANDEZ LAURA NAOMI • FLORES FLORES MARCO ANTONIO<br>
+            Rodríguez Espinosa Génesis Ayde • González Espinosa Noé de Jesús
+        </div>
+    </footer>
+
+</body>
+</html>

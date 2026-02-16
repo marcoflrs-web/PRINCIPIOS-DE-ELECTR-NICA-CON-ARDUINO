@@ -1,0 +1,661 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Catálogo Arduino - Principios de Electrónica</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-black: #0a0a0a;
+            --accent-cyan: #00d9ff;
+            --accent-electric: #7b2cbf;
+            --text-white: #ffffff;
+            --card-bg: #1a1a1a;
+            --hover-glow: rgba(0, 217, 255, 0.3);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Space Mono', monospace;
+            background: var(--primary-black);
+            color: var(--text-white);
+            overflow-x: hidden;
+        }
+
+        /* Hero Section */
+        .hero {
+            position: relative;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background: linear-gradient(135deg, rgba(10, 10, 10, 0.95), rgba(123, 44, 191, 0.3)),
+                        url('https://images.unsplash.com/photo-1553406830-ef2513450d76?w=1920&q=80') center/cover;
+            overflow: hidden;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background:
+                repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0, 217, 255, 0.03) 2px, rgba(0, 217, 255, 0.03) 4px),
+                repeating-linear-gradient(90deg, transparent, transparent 2px, rgba(0, 217, 255, 0.03) 2px, rgba(0, 217, 255, 0.03) 4px);
+            pointer-events: none;
+            animation: gridMove 20s linear infinite;
+        }
+
+        @keyframes gridMove {
+            0% { transform: translate(0, 0); }
+            100% { transform: translate(50px, 50px); }
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 2;
+            text-align: center;
+            animation: fadeInUp 1.2s ease-out;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .hero h1 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: clamp(2.5rem, 8vw, 5rem);
+            font-weight: 900;
+            margin-bottom: 1.5rem;
+            letter-spacing: 0.05em;
+            text-shadow:
+                0 0 20px var(--accent-cyan),
+                0 0 40px var(--accent-cyan),
+                0 0 80px rgba(0, 217, 255, 0.5);
+            animation: glowPulse 3s ease-in-out infinite;
+        }
+
+        @keyframes glowPulse {
+            0%, 100% { text-shadow: 0 0 20px var(--accent-cyan), 0 0 40px var(--accent-cyan); }
+            50% { text-shadow: 0 0 30px var(--accent-cyan), 0 0 60px var(--accent-cyan), 0 0 90px rgba(0, 217, 255, 0.8); }
+        }
+
+        .hero-subtitle {
+            font-family: 'Space Mono', monospace;
+            font-size: clamp(0.9rem, 2vw, 1.2rem);
+            color: rgba(255, 255, 255, 0.8);
+            margin-bottom: 0.5rem;
+            letter-spacing: 0.1em;
+            animation: fadeInUp 1.4s ease-out 0.3s both;
+        }
+
+        .scroll-indicator {
+            position: absolute;
+            bottom: 40px;
+            left: 50%;
+            transform: translateX(-50%);
+            animation: bounce 2s infinite;
+        }
+
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% { transform: translateX(-50%) translateY(0); }
+            40% { transform: translateX(-50%) translateY(-20px); }
+            60% { transform: translateX(-50%) translateY(-10px); }
+        }
+
+        .scroll-indicator::before {
+            content: '⌄';
+            font-size: 3rem;
+            color: var(--accent-cyan);
+            display: block;
+        }
+
+        /* Catalog Section */
+        .catalog {
+            padding: 100px 20px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .catalog-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: clamp(2rem, 5vw, 3.5rem);
+            text-align: center;
+            margin-bottom: 80px;
+            color: var(--accent-cyan);
+            position: relative;
+            animation: fadeInUp 1s ease-out;
+        }
+
+        .catalog-title::after {
+            content: '';
+            display: block;
+            width: 100px;
+            height: 4px;
+            background: linear-gradient(90deg, transparent, var(--accent-cyan), transparent);
+            margin: 20px auto 0;
+        }
+
+        .cards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 40px;
+            margin-bottom: 80px;
+        }
+
+        .card {
+            position: relative;
+            background: var(--card-bg);
+            border: 2px solid rgba(0, 217, 255, 0.2);
+            border-radius: 20px;
+            overflow: hidden;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            animation: fadeInUp 1s ease-out both;
+        }
+
+        .card:nth-child(1) { animation-delay: 0.2s; }
+        .card:nth-child(2) { animation-delay: 0.4s; }
+        .card:nth-child(3) { animation-delay: 0.6s; }
+
+        .card::before {
+            content: '';
+            position: absolute;
+            top: -2px;
+            left: -2px;
+            right: -2px;
+            bottom: -2px;
+            background: linear-gradient(135deg, var(--accent-cyan), var(--accent-electric));
+            border-radius: 20px;
+            opacity: 0;
+            transition: opacity 0.4s;
+            z-index: -1;
+        }
+
+        .card:hover {
+            transform: translateY(-10px) scale(1.02);
+            box-shadow:
+                0 20px 60px rgba(0, 217, 255, 0.3),
+                0 0 0 1px var(--accent-cyan);
+        }
+
+        .card:hover::before {
+            opacity: 1;
+        }
+
+        /* Card image: emoji */
+        .card-image {
+            width: 100%;
+            height: 220px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 5rem;
+            background: linear-gradient(135deg, rgba(0, 217, 255, 0.08), rgba(123, 44, 191, 0.18));
+            border-bottom: 2px solid rgba(0, 217, 255, 0.2);
+            transition: background 0.4s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card-image::after {
+            content: '';
+            position: absolute;
+            width: 120px;
+            height: 120px;
+            border: 2px solid rgba(0, 217, 255, 0.15);
+            border-radius: 50%;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            animation: ringPulse 3s ease-in-out infinite;
+        }
+
+        @keyframes ringPulse {
+            0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 0.3; }
+            50% { transform: translate(-50%, -50%) scale(1.2); opacity: 0.7; }
+        }
+
+        .card:hover .card-image {
+            background: linear-gradient(135deg, rgba(0, 217, 255, 0.18), rgba(123, 44, 191, 0.32));
+        }
+
+        .card-content {
+            padding: 30px;
+        }
+
+        .card-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.4rem;
+            margin-bottom: 15px;
+            color: var(--accent-cyan);
+            letter-spacing: 0.05em;
+        }
+
+        .card-description {
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 0.85rem;
+            line-height: 1.8;
+            margin-bottom: 25px;
+            min-height: 55px;
+        }
+
+        .card-actions {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            flex: 1;
+            min-width: 130px;
+            padding: 15px 25px;
+            border: 2px solid var(--accent-cyan);
+            background: transparent;
+            color: var(--text-white);
+            font-family: 'Space Mono', monospace;
+            font-size: 0.9rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s;
+            text-decoration: none;
+            display: inline-block;
+            text-align: center;
+            border-radius: 8px;
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, var(--accent-cyan), transparent);
+            transition: left 0.5s;
+        }
+
+        .btn:hover::before {
+            left: 100%;
+        }
+
+        .btn:hover {
+            background: var(--accent-cyan);
+            color: var(--primary-black);
+            box-shadow: 0 0 20px var(--hover-glow);
+        }
+
+        .btn-primary {
+            background: var(--accent-cyan);
+            color: var(--primary-black);
+        }
+
+        .btn-primary:hover {
+            background: transparent;
+            color: var(--text-white);
+        }
+
+        /* Footer */
+        .footer {
+            text-align: center;
+            padding: 60px 20px;
+            background: linear-gradient(180deg, transparent, rgba(0, 217, 255, 0.05));
+            border-top: 1px solid rgba(0, 217, 255, 0.2);
+        }
+
+        .team-credits {
+            font-size: 0.95rem;
+            color: rgba(255, 255, 255, 0.7);
+            max-width: 800px;
+            margin: 0 auto;
+            line-height: 1.8;
+        }
+
+        .team-credits strong {
+            color: var(--accent-cyan);
+            font-weight: 700;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .hero h1 {
+                font-size: 2rem;
+            }
+            .hero-subtitle {
+                font-size: 0.8rem;
+            }
+            .cards-grid {
+                grid-template-columns: 1fr;
+                gap: 30px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="hero-content">
+            <h1>PRINCIPIOS DE ELECTRÓNICA<br>CON ARDUINO</h1>
+            <p class="hero-subtitle">INTELIGENCIA ARTIFICIAL</p>
+            <p class="hero-subtitle">MTRO: JORDY CHIRINO BALCAZAR</p>
+        </div>
+        <div class="scroll-indicator"></div>
+    </section>
+
+    <!-- Catalog Section -->
+    <section class="catalog">
+        <h2 class="catalog-title">Catálogo de Tareas</h2>
+
+        <div class="cards-grid">
+
+            <!-- Card 1: Conceptos Básicos -->
+            <div class="card">
+                <img src="https://images.unsplash.com/photo-1581092160562-40aa08e78837?w=600&q=80" 
+                         alt="Conceptos Básicos" 
+                         class="card-image">
+                <div class="card-content">
+                    <h3 class="card-title">CONCEPTOS BÁSICOS</h3>
+                    <p class="card-description">
+                        Fundamentos de programación en Arduino: estructura del código,
+                        pines digitales, funciones setup y loop, y comunicación serial.
+                    </p>
+                    <div class="card-actions">
+                        <a href="conceptosbasicos.html" class="btn">Ver Glosario</a>
+                        <a href="#" class="btn btn-primary" onclick="downloadCode('CONCEPTOS BÁSICOS')">
+                            Descargar Código
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Card 2: Glosario de Materiales -->
+            <div class="card">
+                <img src="https://images.unsplash.com/photo-1518770660439-4636190af475?w=600&q=80" 
+                         alt="Glosario de Materiales Arduino" 
+                         class="card-image">
+                <div class="card-content">
+                    <h3 class="card-title">GLOSARIO DE MATERIALES DE ARDUINO</h3>
+                    <p class="card-description">
+                        Componentes esenciales: Arduino UNO, sensores, servo motor,
+                        LED, buzzer, protoboard y cables jumper para tus proyectos.
+                    </p>
+                    <div class="card-actions">
+                        <a href="materialesarduino.html" class="btn">Ver Glosario</a>
+                        <a href="#" class="btn btn-primary" onclick="downloadCode('GLOSARIO DE MATERIALES DE ARDUINO')">
+                            Descargar Código
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="team-credits">
+            <strong>Realizado por:</strong><br>
+            PEREZ HERNANDEZ LAURA NAOMI • FLORES FLORES MARCO ANTONIO<br>
+            Rodríguez Espinosa Génesis Ayde • González Espinosa Noé de Jesús
+        </div>
+    </footer>
+
+    <script>
+        // Función para descargar código
+        function downloadCode(cardId) {
+            event.preventDefault();
+
+            let code = '';
+            let filename = '';
+
+            if (cardId === 'conceptos-basicos') {
+                filename = 'conceptos_basicos_arduino.ino';
+                code = `// Conceptos Básicos - Arduino
+// Programa ejemplo: Parpadeo de LED (Blink)
+// Este es el "Hola Mundo" de Arduino
+
+const int LED_PIN = 13;
+const int DELAY_TIME = 1000;
+
+void setup() {
+  pinMode(LED_PIN, OUTPUT);
+  Serial.begin(9600);
+  Serial.println("Programa iniciado - Conceptos Básicos");
+}
+
+void loop() {
+  digitalWrite(LED_PIN, HIGH);
+  Serial.println("LED Encendido");
+  delay(DELAY_TIME);
+
+  digitalWrite(LED_PIN, LOW);
+  Serial.println("LED Apagado");
+  delay(DELAY_TIME);
+}
+
+/*
+ * CONCEPTOS CLAVE:
+ * 1. setup(): se ejecuta una sola vez al inicio
+ * 2. loop(): se repite continuamente
+ * 3. pinMode(): configura un pin como INPUT o OUTPUT
+ * 4. digitalWrite(): escribe HIGH o LOW en un pin
+ * 5. delay(): pausa en milisegundos
+ * 6. Serial: comunicación con la computadora
+ *
+ * Realizado por:
+ * PEREZ HERNANDEZ LAURA NAOMI
+ * FLORES FLORES MARCO ANTONIO
+ * Rodríguez Espinosa Génesis Ayde
+ * González Espinosa Noé de Jesús
+ */`;
+
+            } else if (cardId === 'glosario-materiales') {
+                filename = 'glosario_materiales_arduino.ino';
+                code = `// Glosario de Materiales - Arduino
+// Sistema de Medición con Sensor Ultrasónico y Servo Motor
+
+#include <Servo.h>
+
+const int TRIG_PIN = 9;
+const int ECHO_PIN = 10;
+const int LED_PIN = 13;
+const int SERVO_PIN = 6;
+const int BUZZER_PIN = 8;
+
+Servo myServo;
+long duration;
+int distance;
+
+void setup() {
+  pinMode(TRIG_PIN, OUTPUT);
+  pinMode(ECHO_PIN, INPUT);
+  pinMode(LED_PIN, OUTPUT);
+  pinMode(BUZZER_PIN, OUTPUT);
+  myServo.attach(SERVO_PIN);
+  myServo.write(0);
+  Serial.begin(9600);
+  Serial.println("Sistema de medición iniciado");
+}
+
+void loop() {
+  distance = measureDistance();
+  Serial.print("Distancia: ");
+  Serial.print(distance);
+  Serial.println(" cm");
+
+  if (distance < 20) {
+    digitalWrite(LED_PIN, HIGH);
+    tone(BUZZER_PIN, 1000, 200);
+    myServo.write(90);
+    Serial.println("¡Alerta! Objeto muy cerca");
+  } else if (distance < 50) {
+    digitalWrite(LED_PIN, HIGH);
+    delay(100);
+    digitalWrite(LED_PIN, LOW);
+    myServo.write(45);
+    Serial.println("Objeto detectado");
+  } else {
+    digitalWrite(LED_PIN, LOW);
+    myServo.write(0);
+    Serial.println("Despejado");
+  }
+
+  Serial.println("---");
+  delay(500);
+}
+
+int measureDistance() {
+  digitalWrite(TRIG_PIN, LOW);
+  delayMicroseconds(2);
+  digitalWrite(TRIG_PIN, HIGH);
+  delayMicroseconds(10);
+  digitalWrite(TRIG_PIN, LOW);
+  duration = pulseIn(ECHO_PIN, HIGH);
+  return duration * 0.034 / 2;
+}
+
+/*
+ * MATERIALES: Arduino UNO, Sensor HC-SR04, Servo Motor,
+ * LED, Buzzer, Resistencia 220Ω, Protoboard, Cables Jumper
+ *
+ * Realizado por:
+ * PEREZ HERNANDEZ LAURA NAOMI
+ * FLORES FLORES MARCO ANTONIO
+ * Rodríguez Espinosa Génesis Ayde
+ * González Espinosa Noé de Jesús
+ */`;
+
+            } else if (cardId === 'ia-machine-learning') {
+                filename = 'ia_machine_learning_deep_learning.ino';
+                code = `// IA, Machine Learning y Deep Learning con Arduino
+// Red Neuronal Simple para clasificación de sensores
+
+#include <math.h>
+
+const int SENSOR_PIN = A0;
+const int LED_CLASE1 = 9;
+const int LED_CLASE2 = 10;
+const int LED_CLASE3 = 11;
+
+float w1[3][3] = {
+  {0.5, -0.3, 0.8},
+  {-0.4, 0.7, -0.2},
+  {0.6, 0.1, -0.5}
+};
+
+float w2[3][3] = {
+  {0.9, -0.6, 0.4},
+  {-0.3, 0.8, -0.7},
+  {0.2, -0.5, 0.6}
+};
+
+float sigmoid(float x) {
+  return 1.0 / (1.0 + exp(-x));
+}
+
+float normalize(int value) {
+  return value / 1023.0;
+}
+
+int predict(float input) {
+  float x[3] = {input, input * 0.5, input * 0.25};
+  float hidden[3];
+  for (int i = 0; i < 3; i++) {
+    float sum = 0;
+    for (int j = 0; j < 3; j++) sum += x[j] * w1[i][j];
+    hidden[i] = sigmoid(sum);
+  }
+  float output[3];
+  int maxClass = 0;
+  float maxVal = -999;
+  for (int i = 0; i < 3; i++) {
+    float sum = 0;
+    for (int j = 0; j < 3; j++) sum += hidden[j] * w2[i][j];
+    output[i] = sigmoid(sum);
+    if (output[i] > maxVal) { maxVal = output[i]; maxClass = i; }
+  }
+  return maxClass;
+}
+
+void setup() {
+  pinMode(LED_CLASE1, OUTPUT);
+  pinMode(LED_CLASE2, OUTPUT);
+  pinMode(LED_CLASE3, OUTPUT);
+  Serial.begin(9600);
+  Serial.println("=== Red Neuronal con Arduino ===");
+}
+
+void loop() {
+  int sensorVal = analogRead(SENSOR_PIN);
+  float normalizado = normalize(sensorVal);
+  int clase = predict(normalizado);
+
+  digitalWrite(LED_CLASE1, LOW);
+  digitalWrite(LED_CLASE2, LOW);
+  digitalWrite(LED_CLASE3, LOW);
+
+  if (clase == 0) { digitalWrite(LED_CLASE1, HIGH); Serial.print("Clase 1 - Valor: "); }
+  else if (clase == 1) { digitalWrite(LED_CLASE2, HIGH); Serial.print("Clase 2 - Valor: "); }
+  else { digitalWrite(LED_CLASE3, HIGH); Serial.print("Clase 3 - Valor: "); }
+
+  Serial.println(sensorVal);
+  delay(500);
+}
+
+/*
+ * CONCEPTOS DE IA:
+ * 1. Red Neuronal - inspirada en el cerebro humano
+ * 2. Capas - Entrada, oculta y salida
+ * 3. Pesos - parámetros ajustados en entrenamiento
+ * 4. Sigmoide - función de activación
+ * 5. Inferencia - predicción con el modelo
+ *
+ * Realizado por:
+ * PEREZ HERNANDEZ LAURA NAOMI
+ * FLORES FLORES MARCO ANTONIO
+ * Rodríguez Espinosa Génesis Ayde
+ * González Espinosa Noé de Jesús
+ */`;
+            }
+
+            const blob = new Blob([code], { type: 'text/plain' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(url);
+            alert('¡Código descargado exitosamente!\nArchivo: ' + filename);
+        }
+
+        // Smooth scroll para el indicador
+        document.querySelector('.scroll-indicator').addEventListener('click', function () {
+            document.querySelector('.catalog').scrollIntoView({
+                behavior: 'smooth'
+            });
+        });
+    </script>
+
+</body>
+</html>

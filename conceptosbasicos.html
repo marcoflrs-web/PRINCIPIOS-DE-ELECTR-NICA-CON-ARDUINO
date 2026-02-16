@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Conceptos Básicos - Arduino</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-black: #0a0a0a;
+            --accent-cyan: #00d9ff;
+            --accent-electric: #7b2cbf;
+            --text-white: #ffffff;
+            --card-bg: #1a1a1a;
+            --hover-glow: rgba(0, 217, 255, 0.3);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Space Mono', monospace;
+            background: var(--primary-black);
+            color: var(--text-white);
+            overflow-x: hidden;
+            min-height: 100vh;
+        }
+
+        /* Animated grid background */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background:
+                repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0, 217, 255, 0.03) 2px, rgba(0, 217, 255, 0.03) 4px),
+                repeating-linear-gradient(90deg, transparent, transparent 2px, rgba(0, 217, 255, 0.03) 2px, rgba(0, 217, 255, 0.03) 4px);
+            pointer-events: none;
+            animation: gridMove 20s linear infinite;
+            z-index: 0;
+        }
+
+        @keyframes gridMove {
+            0% { transform: translate(0, 0); }
+            100% { transform: translate(50px, 50px); }
+        }
+
+        /* Page header */
+        .page-header {
+            position: relative;
+            z-index: 2;
+            padding: 60px 20px 40px;
+            text-align: center;
+            background: linear-gradient(135deg, rgba(10,10,10,0.95), rgba(123,44,191,0.2)),
+                        url('https://images.unsplash.com/photo-1581092160562-40aa08e78837?w=1920&q=80') center/cover;
+            border-bottom: 2px solid rgba(0, 217, 255, 0.3);
+        }
+
+        .page-header h1 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: clamp(1.8rem, 5vw, 3.2rem);
+            font-weight: 900;
+            color: var(--accent-cyan);
+            letter-spacing: 0.08em;
+            text-shadow:
+                0 0 20px var(--accent-cyan),
+                0 0 40px var(--accent-cyan),
+                0 0 80px rgba(0, 217, 255, 0.5);
+            animation: glowPulse 3s ease-in-out infinite;
+            margin-bottom: 20px;
+        }
+
+        @keyframes glowPulse {
+            0%, 100% { text-shadow: 0 0 20px var(--accent-cyan), 0 0 40px var(--accent-cyan); }
+            50% { text-shadow: 0 0 30px var(--accent-cyan), 0 0 60px var(--accent-cyan), 0 0 90px rgba(0,217,255,0.8); }
+        }
+
+        .page-header::after {
+            content: '';
+            display: block;
+            width: 120px;
+            height: 4px;
+            background: linear-gradient(90deg, transparent, var(--accent-cyan), transparent);
+            margin: 0 auto;
+        }
+
+        /* Back button */
+        .btn-back {
+            display: inline-block;
+            margin-top: 25px;
+            padding: 12px 28px;
+            border: 2px solid var(--accent-cyan);
+            color: var(--text-white);
+            font-family: 'Space Mono', monospace;
+            font-size: 0.85rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            text-decoration: none;
+            border-radius: 8px;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s;
+        }
+
+        .btn-back::before {
+            content: '';
+            position: absolute;
+            top: 0; left: -100%;
+            width: 100%; height: 100%;
+            background: linear-gradient(90deg, transparent, var(--accent-cyan), transparent);
+            transition: left 0.5s;
+        }
+
+        .btn-back:hover::before { left: 100%; }
+        .btn-back:hover {
+            background: var(--accent-cyan);
+            color: var(--primary-black);
+            box-shadow: 0 0 20px var(--hover-glow);
+        }
+
+        /* Main content */
+        .content {
+            position: relative;
+            z-index: 2;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 60px 20px;
+        }
+
+        /* Glossary items */
+        .glossary-grid {
+            display: grid;
+            gap: 35px;
+        }
+
+        .glossary-item {
+            background: var(--card-bg);
+            border: 2px solid rgba(0, 217, 255, 0.2);
+            border-left: 5px solid var(--accent-cyan);
+            border-radius: 20px;
+            padding: 35px;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            animation: fadeInUp 0.8s ease-out both;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .glossary-item::before {
+            content: '';
+            position: absolute;
+            top: -2px; left: -2px; right: -2px; bottom: -2px;
+            background: linear-gradient(135deg, var(--accent-cyan), var(--accent-electric));
+            border-radius: 20px;
+            opacity: 0;
+            transition: opacity 0.4s;
+            z-index: -1;
+        }
+
+        .glossary-item:hover {
+            transform: translateX(10px);
+            box-shadow: 0 10px 40px rgba(0, 217, 255, 0.25), 0 0 0 1px var(--accent-cyan);
+        }
+
+        .glossary-item:hover::before { opacity: 1; }
+
+        .glossary-item:nth-child(1) { animation-delay: 0.1s; }
+        .glossary-item:nth-child(2) { animation-delay: 0.2s; }
+        .glossary-item:nth-child(3) { animation-delay: 0.3s; }
+        .glossary-item:nth-child(4) { animation-delay: 0.4s; }
+        .glossary-item:nth-child(5) { animation-delay: 0.5s; }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(40px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .glossary-item h3 {
+            font-family: 'Orbitron', sans-serif;
+            color: var(--accent-cyan);
+            margin-bottom: 15px;
+            font-size: 1.3rem;
+            letter-spacing: 0.05em;
+        }
+
+        .glossary-item p {
+            color: rgba(255, 255, 255, 0.75);
+            line-height: 1.9;
+            margin-bottom: 20px;
+            font-size: 0.95rem;
+        }
+
+        .glossary-image {
+            width: 100%;
+            max-width: 500px;
+            height: auto;
+            border-radius: 12px;
+            margin-top: 15px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(0, 217, 255, 0.2);
+            transition: box-shadow 0.3s;
+        }
+
+        .glossary-item:hover .glossary-image {
+            box-shadow: 0 10px 35px rgba(0, 217, 255, 0.3), 0 0 0 2px var(--accent-cyan);
+        }
+
+        /* Footer */
+        .footer {
+            position: relative;
+            z-index: 2;
+            text-align: center;
+            padding: 60px 20px;
+            background: linear-gradient(180deg, transparent, rgba(0, 217, 255, 0.05));
+            border-top: 1px solid rgba(0, 217, 255, 0.2);
+        }
+
+        .team-credits {
+            font-size: 0.95rem;
+            color: rgba(255, 255, 255, 0.65);
+            max-width: 800px;
+            margin: 0 auto;
+            line-height: 1.9;
+        }
+
+        .team-credits strong { color: var(--accent-cyan); font-weight: 700; }
+
+        @media (max-width: 768px) {
+            .glossary-item { padding: 25px 20px; }
+            .glossary-item h3 { font-size: 1.1rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="page-header">
+        <h1>CONCEPTOS BÁSICOS</h1>
+        <a href="index.html" class="btn-back">← Volver al Inicio</a>
+    </div>
+
+    <div class="content">
+        <div class="glossary-grid">
+
+            <div class="glossary-item">
+                <h3>Arduino</h3>
+                <p>Arduino es una plataforma de hardware y software de código abierto diseñada para facilitar la creación de proyectos electrónicos interactivos. Consiste en una placa con un microcontrolador programable y un entorno de desarrollo integrado (IDE) que permite escribir y cargar código de manera sencilla.</p>
+                <img src="https://images.unsplash.com/photo-1553406830-ef2513450d76?w=500&q=80" alt="Arduino Board" class="glossary-image">
+            </div>
+
+            <div class="glossary-item">
+                <h3>Microcontrolador</h3>
+                <p>Un microcontrolador es un circuito integrado programable que contiene un procesador, memoria y periféricos de entrada/salida en un solo chip. Es el cerebro de Arduino y ejecuta las instrucciones del código que programamos.</p>
+                <img src="https://www.steren.com.mx/media/catalog/product/cache/0236bbabe616ddcff749ccbc14f38bf2/image/181434d43/microcontrolador-flash-224-bytes-ram-20-mhz-16i-o-encapsulado-pdip.jpg" alt="Microcontrolador" class="glossary-image">
+            </div>
+
+            <div class="glossary-item">
+                <h3>Circuito Electrónico</h3>
+                <p>Un circuito electrónico es un camino cerrado por donde fluye la corriente eléctrica. Incluye componentes como resistencias, capacitores, LEDs, sensores y otros elementos conectados entre sí para realizar una función específica.</p>
+                <img src="https://www.cursosaula21.com/wp-content/uploads/2025/05/Ejemplo-de-un-circuito-electrico-basico.png" alt="Circuito Electrónico" class="glossary-image">
+            </div>
+
+            <div class="glossary-item">
+                <h3>Programación</h3>
+                <p>La programación es el proceso de escribir instrucciones en un lenguaje que el microcontrolador pueda entender. Arduino utiliza un lenguaje basado en C/C++, simplificado para facilitar el aprendizaje y desarrollo de proyectos.</p>
+                <img src="https://images.unsplash.com/photo-1542831371-29b0f74f9713?w=500&q=80" alt="Programación" class="glossary-image">
+            </div>
+
+            <div class="glossary-item">
+                <h3>Protoboard</h3>
+                <p>Una protoboard o breadboard es una placa de pruebas que permite construir circuitos sin necesidad de soldar. Sus orificios están conectados internamente en filas y columnas, facilitando la conexión temporal de componentes electrónicos.</p>
+                <img src="https://m.media-amazon.com/images/I/511MFMQolAL._AC_SX522_.jpg" alt="Protoboard" class="glossary-image">
+            </div>
+
+            <div class="glossary-item">
+                <h3>¿Que es una resistencia?</h3>
+                <p>Es un componente electrónico pasivo diseñado para oponerse
+                    al flujo de corriente en un circuito, limitando su intensidad y
+                    distribuyendo voltaje. Se mide en ohmios (Ω) y transforma
+                    la energía eléctrica sobrante en calor, siendo fundamental
+                    para proteger componentes sensibles.</p>
+                <img src="https://aelectronics.com.mx/2733-large_default/resistencia-th-1-4-watt-200-ohm.jpg" alt="Visión por Computadora" class="glossary-image">
+            </div>
+
+    <div class="page-header">
+        <h1>ELECTRICIDAD</h1>
+    </div>
+
+    <div class="content">
+        <div class="glossary-grid">
+            <div class="glossary-item">
+                <h3>¿Qué es electricidad?</h3>
+                <p>Es el flujo de energía que transmite a través de un material conductor en un circuito.</p>
+                <img src="https://www.une.edu.pe/tecnologia/wp-content/uploads/2025/10/electricidad_est.jpg" alt="Inteligencia Artificial" class="glossary-image">
+            </div>
+
+            <div class="glossary-item">
+                <h3>¿Qué es un circuito?</h3>
+                <p>En pocas palabras, es un camino cerrado de un material conductor donde fluyen los electrones.</p>
+                <img src="circuitos.png" class="glossary-image">
+            </div>
+
+            <div class="glossary-item">
+                <h3>Corriente directa</h3>
+                <p>La corriente directa fluye en una sola dirección.</p>
+                <img src="https://cdn.shopify.com/s/files/1/0690/4623/9519/files/corriente_alterna_y_directa-04_480x480.jpg?v=1686772078" alt="Deep Learning" class="glossary-image">
+            </div>
+
+            <div class="glossary-item">
+                <h3>Corriente alterna</h3>
+                <p>La corriente alterna como su nombre lo indica invierte su dirección periódicamente.</p>
+                <img src="https://ec.europa.eu/health/opinions2/es/campos-electromagneticos07/images/ca.gif" alt="IA en el móvil" class="glossary-image">
+            </div>
+
+            <div class="glossary-item">
+                <h3>Fuentes y aplicaciones de la CD</h3>
+                <p>Proviene de baterías, pilas, paneles solares, normalmente para alimentar dispositivos electrónicos como computadoras, 
+                teléfonos, etc.</p>
+                <img src="https://www.semana.com/resizer/v2/J3MFOWOKG5CW7DROIWA5LCZZQQ.png?auth=0ee6053d2aec8a87de685ef18b1fcbc75739ab11961a65491a282e886f1281bb&smart=true&quality=75&width=1280&height=720" alt="Procesamiento de Lenguaje Natural" class="glossary-image">
+            </div>
+
+            <div class="glossary-item">
+                <h3>Fuentes y aplicaciones de la CA</h3>
+                <p>Proviene de la red eléctrica, generadores y transformadores para alimentar electrodomésticos y motores eléctricos.</p>
+                <img src="ca.png" alt="Visión por Computadora" class="glossary-image">
+            </div>
+    <div class="page-header">
+        <h1>IA, MACHINE LEARNING Y DEEP LEARNING</h1>
+    </div>
+
+    <div class="content">
+        <div class="glossary-grid">
+
+            <div class="glossary-item">
+                <h3>Inteligencia Artificial (IA)</h3>
+                <p>La Inteligencia Artificial es la rama de la informática que busca crear sistemas capaces de realizar tareas que normalmente requieren inteligencia humana, como el razonamiento, el aprendizaje, la percepción y la toma de decisiones. Se divide en IA débil (especializada en una tarea) e IA fuerte (con capacidades generales como el humano).</p>
+                <span class="example-tag">EJEMPLO REAL</span>
+                <p class="example-value">ASISTENTE DE VOZ</p>
+                <img src="https://blog.saleslayer.com/hubfs/voice-search-ecommerce.jpg" alt="Inteligencia Artificial" class="glossary-image">
+            </div>
+
+            <div class="glossary-item">
+                <h3>Machine Learning (Aprendizaje Automático)</h3>
+                <p>El Machine Learning es un subcampo de la IA que permite a las computadoras aprender de datos sin ser programadas explícitamente. Los algoritmos de ML identifican patrones en grandes conjuntos de datos y mejoran su rendimiento con la experiencia. Se clasifica en aprendizaje supervisado, no supervisado y por refuerzo.</p>
+                <span class="example-tag">EJEMPLO REAL</span>
+                <p class="example-value">FILTRO DE SPAM</p>
+                <img src="https://www.hosting506.com/core/images/filtro-spam-hosting506.png" alt="Machine Learning" class="glossary-image">
+            </div>
+
+            <div class="glossary-item">
+                <h3>Deep Learning (Aprendizaje Profundo)</h3>
+                <p>El Deep Learning es una rama del Machine Learning que utiliza redes neuronales artificiales con múltiples capas (capas profundas) para aprender representaciones de datos con múltiples niveles de abstracción. Es especialmente efectivo en reconocimiento de imágenes, voz y procesamiento de lenguaje natural.</p>
+                <span class="example-tag">EJEMPLO REAL</span>
+                <p class="example-value">RECONOCIMIENTO FACIAL</p>
+                <img src="https://blog.truora.com/hubfs/reconocimiento%20facial.jpeg" alt="Deep Learning" class="glossary-image">
+            </div>
+
+            <div class="glossary-item">
+                <h3>IA en la Vida Cotidiana</h3>
+
+                <h3 class="sub-heading">En tu móvil</h3>
+                <p>Modo Retrato/Noche: La IA ajusta la luz y desenfoca el fondo automáticamente.<br>
+                Teclado Predictivo: Sugiere la siguiente palabra aprendiendo de cómo escribes.<br>
+                Galería Inteligente: Agrupa fotos por rostros, lugares o mascotas sin que tú lo hagas.</p>
+                <img src="https://images.unsplash.com/photo-1512941937669-90a1b58e7e9c?w=500&q=80" alt="IA en el móvil" class="glossary-image">
+
+                <h3 class="sub-heading">En casa</h3>
+                <p>Asistentes de voz: Alexa o Google reconocen tu voz y entienden comandos naturales.<br>
+                Aspiradora Robot: Mapea tu casa y aprende dónde hay obstáculos para no chocar.<br>
+                Climatización: Termostato que aprende tus horarios para ahorrar energía.</p>
+                <img src="https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=500&q=80" alt="Hogar inteligente" class="glossary-image">
+
+                <h3 class="sub-heading">En la calle</h3>
+                <p>Semáforos Adaptativos: Cambian según la cantidad de tráfico real, no solo por tiempo.<br>
+                Mapas y Rutas: Waze/Maps predicen el tiempo de llegada analizando miles de datos.<br>
+                Seguridad: Cámaras que cuentan personas o detectan vehículos automáticamente.</p>
+                <img src="https://images.unsplash.com/photo-1477959858617-67f85cf4f1df?w=500&q=80" alt="IA en la ciudad" class="glossary-image">
+            </div>
+
+            <div class="glossary-item">
+                <h3>Procesamiento de Lenguaje Natural (NLP)</h3>
+                <p>El NLP es la capacidad de las máquinas para entender, interpretar y generar lenguaje humano. Aplicaciones como los chatbots, traductores automáticos y asistentes de voz (como Siri o Alexa) utilizan NLP. Modelos como GPT y BERT han revolucionado este campo con resultados sorprendentes.</p>
+                <img src="https://images.unsplash.com/photo-1516110833967-0b5716ca1387?w=500&q=80" alt="Procesamiento de Lenguaje Natural" class="glossary-image">
+            </div>
+
+            <div class="glossary-item">
+                <h3>Visión por Computadora</h3>
+                <p>Es el campo de la IA que permite a las máquinas interpretar y entender imágenes y videos del mundo real. Usando redes neuronales convolucionales (CNN), los sistemas pueden detectar objetos, reconocer rostros, analizar escenas médicas y mucho más. Es fundamental en autos autónomos y sistemas de seguridad.</p>
+                <img src="https://images.unsplash.com/photo-1485827404703-89b55fcc595e?w=500&q=80" alt="Visión por Computadora" class="glossary-image">
+            </div>
+        </div>
+    </div>
+
+    <footer class="footer">
+        <div class="team-credits">
+            <strong>Realizado por:</strong><br>
+            PEREZ HERNANDEZ LAURA NAOMI • FLORES FLORES MARCO ANTONIO<br>
+            Rodríguez Espinosa Génesis Ayde • González Espinosa Noé de Jesús
+        </div>
+    </footer>
+
+</body>
+</html>
