@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Circuito en serie y paralelo</title>
-    <link href="portada.png" rel="stylesheet">
+    <link href="portada.jpeg" rel="stylesheet">
     <style>
         :root {
             --primary-black: #0a0a0a;
@@ -229,176 +229,107 @@
 
     <div class="page-header">
         <h1>CIRCUITO EN SERIE Y PARALELO</h1>
-        <a href="index2_0.html" class="btn-back">← Volver al Inicio</a>
+        <a href="index.html" class="btn-back">← Volver al Inicio</a>
     </div>
 
     <div class="content">
         <div class="glossary-grid">
 
             <div class="glossary-item">
-                <h3>Arduino Uno R3</h3>
-                <p>Es una placa popular entre los aficionados a la electrónica DIY que ofrece características como 14 pines de entrada/salida digitales, 6 pines analógicos y un encabezado ICSP (programación serial en circuito). Funciona con el microchip ATmega328P de 16 MHz y proporciona un voltaje de hasta 5V a los componentes conectados. Es una excelente opción para quienes desean iniciarse en la electrónica.</p>
-                <img src="https://images.unsplash.com/photo-1553406830-ef2513450d76?w=500&q=80" alt="Arduino UNO" class="glossary-image">
+                <h3>Ejercicio 1</h3>
+                <h3>Elementos que aparecen</h3>
+                <p>Batería de 9V</p>
+                <p>Es la fuente de energía del circuito.
+                Está conectada mediante cables rojo (+) y negro (–).</p>
+                <img src="https://www.carrod.mx/cdn/shop/products/98_558deae4-fab3-43e6-9156-2e8d9f04e956_grande.png?v=1757520983" alt="Arduino UNO" class="glossary-image">
+                <p>Protoboard</p>
+                <p>Placa blanca con orificios para hacer conexiones sin soldar.
+                Tiene rieles laterales para alimentación (línea roja y azul).</p>
+                <img src="https://m.media-amazon.com/images/I/511MFMQolAL._AC_SX522_.jpg" alt="Arduino UNO" class="glossary-image">
+                <p>LEDs</p>
+                <p>Tres LEDs rojos encendidos
+                Están conectados en la parte superior del protoboard.
+                Emiten luz, lo que indica que el circuito está cerrado y funcionando.</p>
+                <img src="rojos.jpg" alt="Arduino UNO" class="glossary-image">
+                <p>Resistencias</p>
+                <p>Se observan resistencias conectadas en serie con los LEDs.
+                Sirven para limitar la corriente y evitar que los LEDs se quemen.
+                Cables jumper
+                Distribuyen la corriente desde la batería hacia el circuito.</p>
+                <img src="https://aelectronics.com.mx/2733-large_default/resistencia-th-1-4-watt-200-ohm.jpg" alt="Arduino UNO" class="glossary-image">
+                <p>¿Qué tipo de conexión es?</p>
+                <p>Por la forma en que están colocados los LEDs y las resistencias, parece que están conectados en paralelo con resistencias individuales, lo cual es correcto porque:
+                Cada LED recibe el mismo voltaje.
+                Cada LED tiene su propia resistencia para controlar la corriente.
+                Si uno se apaga, los demás siguen encendidos.</p>
+                <img src="ejeuno.jpeg" alt="Arduino UNO" class="glossary-image">
+                <img src="ejeunoo.jpeg" alt="Arduino UNO" class="glossary-image">
+                <p>¿Qué demuestra esta práctica?</p> 
+                <p>Este montaje sirve para aprender:
+                Uso correcto del protoboard.
+                Polaridad de los LEDs (ánodo y cátodo).
+                Importancia de las resistencias.
+                Diferencia entre conexión en serie y paralelo.
+                Cómo alimentar un circuito con una batería.</p>
+                <img src="https://i.pinimg.com/736x/5a/e1/9a/5ae19a4705e9083c1ed5efcb99ceaf94.jpg" alt="Arduino UNO" class="glossary-image">
+                <p>🔴 Punto importante</p> 
+                <p>En esta imagen el circuito está mejor armado que el anterior porque sí incluye resistencias, lo que protege los LEDs y hace que el montaje sea seguro.</p>
+                <img src="xddd.jpeg" alt="Arduino UNO" class="glossary-image">
             </div>
 
             <div class="glossary-item">
-                <h3>Arduino Nano</h3>
-                <p>Es muy popular entre los desarrolladores gracias a su pequeño tamaño y a sus considerables capacidades. Comparte muchas de las características del UNO, pero en un formato más pequeño, lo que lo hace ideal para usar en placas de pruebas y otros espacios reducidos. No cuenta con una conexión de alimentación de CC integrada; en su lugar utiliza un puerto mini USB.</p>
-                <img src="https://m.media-amazon.com/images/I/61R1A7CuHTL._AC_UF1000,1000_QL80_.jpg" alt="Arduino Nano" class="glossary-image">
-            </div>
-
-            <div class="glossary-item">
-                <h3>Arduino Micro</h3>
-                <p>Ofrece características similares al Leonardo pero es significativamente más pequeño y solo tiene 12 pines de E/S analógicos junto con sus 20 digitales. Esta placa mide tan solo 18 mm de ancho por 48 mm de largo. Es una de las placas más pequeñas jamás creadas por Arduino. Con esta placa puedes crear un teclado, un ratón u otro dispositivo HID que requiere un espacio mínimo.</p>
-                <img src="https://cdn.soselectronic.com/productdata/8f/79/4409f837/arduino-micro.jpg" alt="Arduino Micro" class="glossary-image">
-            </div>
-
-            <div class="glossary-item">
-                <h3>Arduino Leonardo</h3>
-                <p>Es diferente a las demás placas. Utiliza un chip ATmega32U4 en lugar del ATmega328P. Ofrece más pines de E/S (20), PWM (7) y señales de entrada analógicas (12).</p>
-                <img src="https://cf-images.us-east-1.prod.boltdns.net/v1/static/618591172001/b98c55ab-03ce-4eee-88fd-863bf45df0f4/59063a81-dacb-4a82-8056-555dc696ea1c/1280x720/match/image.jpg" alt="Arduino Leonardo" class="glossary-image">
-            </div>
-
-            <div class="glossary-item">
-                <h3>Arduino Due</h3>
-                <p>Es una actualización más potente del popular Arduino Mega con sus 54 E/S digitales y 12 entradas analógicas. Funciona a 84 MHz solo a 3.3V. Ofrece un procesador Atmel SAM3X8E ARM Cortex-M3 junto con interfaces USB OTG, DAC y JTAG para opciones de conectividad adicionales.</p>
-                <img src="https://store.arduino.cc/cdn/shop/files/A000062_00.front_934x700.jpg?v=1727098247" alt="Arduino Due" class="glossary-image">
-            </div>
-
-            <div class="glossary-item">
-                <h3>Sensor de Temperatura y Humedad DHT11</h3>
-                <p>El DHT11 es un sensor digital que mide temperatura (0-50°C) y humedad relativa (20-90%). Tiene cuatro pines pero solo se usan tres: VCC (alimentación), DATA (señal) y GND (tierra). Es ampliamente utilizado en estaciones meteorológicas caseras.</p>
-                <img src="https://www.steren.com.mx/media/catalog/product/cache/0236bbabe616ddcff749ccbc14f38bf2/image/1946055a7/sensor-de-temperatura-y-humedad-dht11.jpg" alt="Sensor DHT11" class="glossary-image">
-            </div>
-
-            <div class="glossary-item">
-                <h3>Motor DC</h3>
-                <p>Los motores de corriente continua (DC) convierten energía eléctrica en movimiento rotatorio. Su velocidad se controla mediante la variación del voltaje aplicado o usando PWM (Modulación por Ancho de Pulso). Requieren controladores como el L298N para ser manejados por Arduino.</p>
-                <img src="https://natytec.com.mx/wp-content/uploads/2017/10/Icono-1P-MOTOR-DC-3-%E2%80%9012V-150MA-300MA.png" alt="Motor DC" class="glossary-image">
-            </div>
-
-            <div class="glossary-item">
-                <h3>Buzzer Piezoeléctrico</h3>
-                <p>Un buzzer es un componente que produce sonido cuando se le aplica corriente. Los buzzers piezoeléctricos pueden generar diferentes tonos variando la frecuencia de la señal. Son útiles para alarmas, notificaciones y proyectos musicales simples.</p>
-                <img src="https://images.unsplash.com/photo-1608564697071-ddf911d81370?w=500&q=80" alt="Buzzer" class="glossary-image">
-            </div>
-    <div class="page-header">
-        <h1>MODELOS DE SENSOR</h1>
-    </div>
-
-    <div class="content">
-        <div class="glossary-grid">
-
-            <div class="glossary-item">
-                <h3>Modelo de sensor de proximidad ultrasónico</h3>
-                <p>Los sensores de proximidad ultrasónicos detectan objetos sin contacto emitiendo ondas de alta frecuencia. Los modelos populares incluyen el asequible HC-SR04 para robótica (rango de ~4m), el JSN-SR04T impermeable para exteriores, y series industriales como microsonic mic+ (M30) o Pepperl+Fuchs para automatización, ideales para medir niveles, distancias y materiales transparentes.</p>
-                <img src="https://microlab.ec/blog/wp-content/uploads/2021/05/Untitled-design25-1.jpg" alt="Inteligencia Artificial" class="glossary-image">
-            </div>
-
-            <div class="glossary-item">
-                <h3>Microsonic mic+ y pico+</h3>
-                <p>Son sensores ultrasónicos industriales que se usan para medir distancia o detectar objetos sin contacto, usando ondas de ultrasonido.</p>
-                <img src="https://4.imimg.com/data4/CS/NX/ANDROID-1449372/product-500x500.jpeg" alt="Inteligencia Artificial" class="glossary-image">
-            </div>
-
-            <div class="glossary-item">
-                <h3>Baumer US00/UR18</h3>
-                <p>Diseñados para detección de largo alcance (hasta 1000 mm) con zonas ciegas cortas.</p>
-                <img src="https://media.baumer.com/mamfile_1603586_720Wx540H_c.png" alt="Inteligencia Artificial" class="glossary-image">
-            </div>
-
-            <div class="glossary-item">
-                <h3>Serie FW de Keyence</h3>
-                <p>digitales de alta potencia para entornos difíciles.</p>
-                <img src="https://www.keyence.com.mx/img/series/360/91558.png" alt="Inteligencia Artificial" class="glossary-image">
-            </div>
-
-            <div class="glossary-item">
-                <h3>Turck M18</h3>
-                <p>Sensores cilíndricos sellados con compensación de temperatura.</p>
-                <img src="https://www.turck.com.mx/repo/_db_20250704092918_/Graphics/Pic3/00507399_0.png" alt="Inteligencia Artificial" class="glossary-image">
-            </div>
-
-    <div class="page-header">
-        <h1>TIPOS DE LEDS</h1>
-    </div>
-
-    <div class="content">
-        <div class="glossary-grid">
-
-            <div class="glossary-item">
-                <h3>Led tradicional (DIP)</h3>
-                <p>Es el más común.
-                   Tiene forma redonda alargada.
-                   Se usa en proyectos escolares y electrónicos básicos.
-                   Viene en colores como rojo, verde, azul, blanco, amarillo</p>
-                <img src="https://visualled.com/wp-content/uploads/2020/07/LED-DIP.jpg" alt="Inteligencia Artificial" class="glossary-image">
-            </div>
-
-            <div class="glossary-item">
-                <h3>Led SMD (Surface Mount Device)</h3>
-                <p>Es pequeño y plano.
-                    Se usa en tiras Led, focos y pantallas.
-                    Da más iluminación que el tradicional.</p>
-                <img src="https://cdn.pcbonline.com/blog/0805-smd-led.webp" class="glossary-image">
-            </div>
-
-            <div class="glossary-item">
-                <h3>Led Cob (Chip On Board)</h3>
-                <p>Tiene muchos chips LED juntos en una sola placa.
-                    Produce luz muy potente y uniforme.
-                    Se usa en reflectores y lámparas industriales.</p>
-                <img src="https://zoomvisual.com.sg/wp-content/uploads/2024/04/Close-up-of-COB.webp" alt="Deep Learning" class="glossary-image">
-            </div>
-
-            <div class="glossary-item">
-                <h3>Led Monocromático</h3>
-                <p>Emite un solo color (rojo, verde, azul, amarillo, etc).
-                    Se usa en señalización e indicadores.</p>
-                <img src="https://nautilusbr.com/dev/wp-content/uploads/led-smd-80mm-9w-para-piscinas_7.jpg" alt="IA en el móvil" class="glossary-image">
-            </div>
-
-            <div class="glossary-item">
-                <h3>Led RGB</h3>
-                <p>Puede emitir varios colores al combinar rojo, verde y azul.
-                    Se usa en iluminación decorativa y dispositivos electrónicos.</p>
-                <img src="https://m.media-amazon.com/images/I/41uTF1gcs7L._AC_SX679_.jpg" alt="Procesamiento de Lenguaje Natural" class="glossary-image">
-            </div>
-
-            <div class="glossary-item">
-                <h3>Led blanco</h3>
-                <p>Emite luz blanca. Puede ser blanco cálido, neutro o frío, dependiendo del tono de iluminación.</p>
-                <img src="https://www.steren.com.mx/media/catalog/product/cache/bb0cad18a6adb5d17b0efd58f4201a2f/image/15875e17b/led-ultrabrillante-de-5-mm-color-blanco.jpg" alt="Visión por Computadora" class="glossary-image">
-            </div>
-
-            <div class="glossary-item">
-                <h3>Led para pantallas</h3>
-                <p>Se utiliza en televisores y pantallas electrónicas para producir imágenes brillantes y nítidas.</p>
-                <img src="https://i5.walmartimages.com/asr/89f35a9a-cdff-4eda-8a5e-a5917edce057.a0ac1f63886e72d417644d4e009a5030.jpeg?odnHeight=612&odnWidth=612&odnBg=FFFFFF" alt="Visión por Computadora" class="glossary-image">
-            </div>
-
-            <div class="glossary-item">
-                <h3>Oled (Led orgánico)</h3>
-                <p>Es un tipo de led flexible y delgado que se usa en pantallas modernas de celulares y televisores.</p>
-                <img src="https://www.codigoiot.com/wp-content/uploads/2018/10/OLEDcolor.png-300x255.jpeg" alt="Visión por Computadora" class="glossary-image">
-            </div>
-
-            <div class="glossary-item">
-                <h3>¿Qué función tienen las dos patitas del led?</h3>
-                <p>Es el terminal positivo. Debe conectarse al polo positivo de la fuente de alimentación.</p>
-                <img src="https://prototipadolab.com/wp-content/uploads/2017/07/le.jpg" alt="Visión por Computadora" class="glossary-image">
-            </div>
-
-            <div class="glossary-item">
-                <h3>Pata larga (Ánodo +)</h3>
-                <p>Las dos patitas (o terminales) de un Led (Diodo Emisor de Luz) tienen la función de conectar el diodo a un circuito eléctrico, definiendo la polaridad, es decir, el sentido en el que debe fluir la corriente para que el componente funcione correctamente.</p>
-                <img src="https://inputmakers.com/wp-content/uploads/2020/12/Captura-de-Pantalla-2020-12-01-a-les-17.07.47-300x163.png" alt="Visión por Computadora" class="glossary-image">
-            </div>
-
-            <div class="glossary-item">
-                <h3>Pata corta (Cátodo -)</h3>
-                <p>Es el terminal negativo. Debe conectarse a tierra o al negativo de la fuente de alimentación.</p>
-                <img src="https://inputmakers.com/wp-content/uploads/2020/12/Captura-de-Pantalla-2020-12-01-a-les-17.07.47-300x163.png" alt="Visión por Computadora" class="glossary-image">
+                <h3>Ejercicio 2</h3>
+                <h3>Elementos que aparecen</h3>
+                <p>Batería de 9V</p>
+                <p>Es una batería rectangular (tipo carbón).
+                Proporciona la energía al circuito.</p>
+                <img src="https://www.carrod.mx/cdn/shop/products/98_558deae4-fab3-43e6-9156-2e8d9f04e956_grande.png?v=1757520983" alt="Arduino UNO" class="glossary-image">
+                <p>Cables (rojo y negro)</p>
+                <p>Rojo: normalmente es el polo positivo (+).
+                Negro: normalmente es el polo negativo (–).</p>
+                <img src="https://m.media-amazon.com/images/I/418KXdS-L3L._SS200_.jpg" alt="Arduino UNO" class="glossary-image">
+                <p>Protoboard</p>
+                <p>Placa blanca con muchos orificios.
+                Sirve para conectar componentes sin necesidad de soldar.</p>
+                <img src="https://m.media-amazon.com/images/I/511MFMQolAL._AC_SX522_.jpg" alt="Arduino UNO" class="glossary-image">
+                <p>LEDs</p>
+                <p>Tres LEDs rojos encendidos
+                Están conectados en la parte superior del protoboard.
+                Emiten luz, lo que indica que el circuito está cerrado y funcionando.</p>
+                <img src="rojos.jpg" alt="Arduino UNO" class="glossary-image">
+                <p>Resistencias</p>
+                <p>Se observan resistencias conectadas en serie con los LEDs.
+                Sirven para limitar la corriente y evitar que los LEDs se quemen.
+                Cables jumper
+                Distribuyen la corriente desde la batería hacia el circuito.</p>
+                <img src="https://aelectronics.com.mx/2733-large_default/resistencia-th-1-4-watt-200-ohm.jpg" alt="Arduino UNO" class="glossary-image">
+                <p>¿Qué está pasando en el circuito?</p>
+                <p>Los LEDs están conectados directamente a la pila de 9V, ya que están encendidos.</p>
+                <img src="ejed.jpeg" alt="Arduino UNO" class="glossary-image">
+                <img src="ejedo.jpeg" alt="Arduino UNO" class="glossary-image">
+                <p>🔴 Importante</p> 
+                <p>No se observa ninguna resistencia en serie.
+                Los LEDs necesitan una resistencia (por ejemplo 220Ω o 330Ω) para limitar la corriente.
+                Sin resistencia, pueden:
+                Quemarse
+                Reducir su vida útil
+                Consumir demasiada corriente</p>
+                <img src="https://i.pinimg.com/736x/6b/5b/3a/6b5b3a1758444f4d7692b4c015ae7440.jpg" alt="Arduino UNO" class="glossary-image">
+                <p>Tipo de conexión</p> 
+                <p>Por la posición, parece que los LEDs están conectados en paralelo, porque:
+                Todos están encendidos con la misma intensidad.
+                Cada uno probablemente recibe el mismo voltaje de la pila.
+                Si estuvieran en serie:
+                Se verían menos brillantes.
+                El voltaje se repartiría entre ellos.</p>
+                <img src="ejedos.jpeg" alt="Arduino UNO" class="glossary-image">
+                <p>¿Qué aprendizaje muestra la imagen?</p> 
+                <p>Este montaje sirve para:
+                Practicar conexiones básicas.
+                Entender polaridad (ánodo y cátodo).
+                Aprender cómo distribuir energía en un protoboard.
+                Diferenciar conexiones en serie y paralelo.</p>
+                <img src="lol.jpeg" alt="Arduino UNO" class="glossary-image">
             </div>
         </div>
     </div>
