@@ -1,0 +1,984 @@
+<!DOCTYPE html>
+<!--
+    ╔══════════════════════════════════════════════════════════════╗
+    ║  ARCHIVO: diagramas_explicado.html                          ║
+    ║  PROPÓSITO: Muestra dos diagramas de circuitos eléctricos   ║
+    ║  con estilo visual oscuro/neón, animaciones SVG y una       ║
+    ║  tabla comparativa al final.                                 ║
+    ╚══════════════════════════════════════════════════════════════╝
+-->
+<html lang="es">
+<head>
+    <!-- ── META TAGS ──────────────────────────────────────────────
+         charset: define que el texto puede usar acentos y ñ (UTF-8)
+         viewport: hace que la página se adapte al tamaño del móvil
+    ──────────────────────────────────────────────────────────── -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Control de led con potenciometro y led en paralelo</title>
+
+    <!-- ── NOTA: La siguiente línea intenta cargar una "hoja de estilos"
+         desde Amazon, pero en realidad es una imagen (no una fuente real).
+         No tiene ningún efecto visual en la página. ── -->
+    <link href="https://m.media-amazon.com/images/I/61AvdQOxFzL._AC_UF1000,1000_QL80_.jpg" rel="stylesheet">
+
+    <style>
+        /* ══════════════════════════════════════════════════════════
+           VARIABLES CSS GLOBALES (:root)
+           Aquí se definen los colores del tema como "variables"
+           para poder reutilizarlos fácilmente en todo el archivo.
+           Se acceden con: var(--nombre-variable)
+        ══════════════════════════════════════════════════════════ */
+        :root {
+            --primary-black: #0a0a0a;           /* fondo principal negro casi puro */
+            --accent-cyan: #00d9ff;             /* color neón cyan (Diagrama 1) */
+            --accent-electric: #7b2cbf;         /* morado eléctrico (tabla comparativa) */
+            --accent-yellow: #ffe600;           /* amarillo para alertas */
+            --text-white: #ffffff;              /* texto blanco */
+            --card-bg: #1a1a1a;                 /* fondo de las tarjetas */
+            --hover-glow: rgba(0, 217, 255, 0.3); /* resplandor cyan al pasar el mouse */
+        }
+
+        /* ── RESET BÁSICO ────────────────────────────────────────
+           Elimina márgenes y rellenos predeterminados del navegador
+           box-sizing: border-box hace que padding y borde no
+           aumenten el tamaño total del elemento.
+        ──────────────────────────────────────────────────────── */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        /* ── BODY (contenedor raíz de la página) ─────────────────
+           font-family: usa fuente monoespaciada estilo consola/código
+           overflow-x: hidden → evita barra de scroll horizontal
+           min-height: 100vh → la página ocupa al menos toda la pantalla
+        ──────────────────────────────────────────────────────── */
+        body {
+            font-family: 'Space Mono', monospace;
+            background: var(--primary-black);
+            color: var(--text-white);
+            overflow-x: hidden;
+            min-height: 100vh;
+        }
+
+        /* ── CUADRÍCULA ANIMADA DE FONDO (pseudo-elemento ::before) ──
+           body::before crea una capa "fantasma" encima del fondo negro.
+           Se usa position: fixed para que cubra toda la pantalla siempre.
+           Los dos "repeating-linear-gradient" superpuestos crean una
+           cuadrícula de líneas muy tenues (3% de opacidad cyan).
+           "pointer-events: none" permite hacer click "a través" de ella.
+           La animación "gridMove" hace que la cuadrícula se mueva
+           diagonalmente en un loop de 20 segundos.
+        ──────────────────────────────────────────────────────── */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background:
+                repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0, 217, 255, 0.03) 2px, rgba(0, 217, 255, 0.03) 4px),
+                repeating-linear-gradient(90deg, transparent, transparent 2px, rgba(0, 217, 255, 0.03) 2px, rgba(0, 217, 255, 0.03) 4px);
+            pointer-events: none;
+            animation: gridMove 20s linear infinite;
+            z-index: 0; /* debajo del contenido real */
+        }
+
+        /* ── ANIMACIÓN: movimiento de la cuadrícula ──────────────
+           Mueve la capa diagonal 50px en X e Y durante 20 segundos,
+           dando la ilusión de que la cuadrícula "fluye" continuamente.
+        ──────────────────────────────────────────────────────── */
+        @keyframes gridMove {
+            0% { transform: translate(0, 0); }
+            100% { transform: translate(50px, 50px); }
+        }
+
+        /* ══════════════════════════════════════════════════════════
+           ENCABEZADO DE LA PÁGINA (.page-header)
+           z-index: 2 → aparece sobre la cuadrícula (z-index: 0)
+           Tiene un fondo con imagen de tecnología de Unsplash
+           con un gradiente negro/morado encima para oscurecerla.
+           El borde inferior separa visualmente el header del contenido.
+        ══════════════════════════════════════════════════════════ */
+        .page-header {
+            position: relative;
+            z-index: 2;
+            padding: 60px 20px 40px;
+            text-align: center;
+            background: linear-gradient(135deg, rgba(10,10,10,0.95), rgba(123,44,191,0.2)),
+                        url('https://images.unsplash.com/photo-1518770660439-4636190af475?w=1920&q=80') center/cover;
+            border-bottom: 2px solid rgba(0, 217, 255, 0.3);
+        }
+
+        /* ── TÍTULO PRINCIPAL ────────────────────────────────────
+           font-family: Orbitron → fuente estilo ciencia ficción/tecnología
+           clamp(mín, preferido, máx): tamaño responsive que se ajusta
+           text-shadow múltiple: crea el efecto de "brillo neón"
+           animation: el brillo pulsa suavemente cada 3 segundos
+        ──────────────────────────────────────────────────────── */
+        .page-header h1 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: clamp(1.5rem, 4vw, 2.8rem);
+            font-weight: 900;
+            color: var(--accent-cyan);
+            letter-spacing: 0.08em;
+            text-shadow: 0 0 20px var(--accent-cyan), 0 0 40px var(--accent-cyan), 0 0 80px rgba(0, 217, 255, 0.5);
+            animation: glowPulse 3s ease-in-out infinite;
+            margin-bottom: 10px;
+        }
+
+        /* ── SUBTÍTULO DEL HEADER ────────────────────────────── */
+        .page-header p {
+            color: rgba(255,255,255,0.6); /* blanco al 60% de opacidad */
+            font-size: 0.9rem;
+            margin-bottom: 20px;
+        }
+
+        /* ── ANIMACIÓN: pulso del brillo del título ──────────────
+           En el punto 50% (mitad del ciclo) el brillo se intensifica.
+           Regresa al brillo original en 100% creando un efecto pulsante.
+        ──────────────────────────────────────────────────────── */
+        @keyframes glowPulse {
+            0%, 100% { text-shadow: 0 0 20px var(--accent-cyan), 0 0 40px var(--accent-cyan); }
+            50% { text-shadow: 0 0 30px var(--accent-cyan), 0 0 60px var(--accent-cyan), 0 0 90px rgba(0,217,255,0.8); }
+        }
+
+        /* ── LÍNEA DECORATIVA DEBAJO DEL TÍTULO ─────────────────
+           ::after crea un pseudo-elemento decorativo.
+           Es una línea de 120px que va de transparente a cyan y de vuelta.
+        ──────────────────────────────────────────────────────── */
+        .page-header::after {
+            content: '';
+            display: block;
+            width: 120px;
+            height: 4px;
+            background: linear-gradient(90deg, transparent, var(--accent-cyan), transparent);
+            margin: 0 auto; /* centrada horizontalmente */
+        }
+
+        /* ── BOTÓN "VOLVER" ──────────────────────────────────────
+           Es un enlace (<a>) estilizado como botón.
+           overflow: hidden y position: relative preparan el efecto hover.
+           transition: all 0.3s → todas las propiedades cambian suavemente.
+        ──────────────────────────────────────────────────────── */
+        .btn-back {
+            display: inline-block;
+            margin-top: 25px;
+            padding: 12px 28px;
+            border: 2px solid var(--accent-cyan);
+            color: var(--text-white);
+            font-family: 'Space Mono', monospace;
+            font-size: 0.85rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            text-decoration: none; /* elimina el subrayado del enlace */
+            border-radius: 8px;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s;
+        }
+
+        /* ── EFECTO HOVER DEL BOTÓN ──────────────────────────────
+           Al pasar el mouse: fondo se vuelve cyan, texto negro,
+           y aparece un resplandor exterior (box-shadow).
+        ──────────────────────────────────────────────────────── */
+        .btn-back:hover {
+            background: var(--accent-cyan);
+            color: var(--primary-black);
+            box-shadow: 0 0 20px var(--hover-glow);
+        }
+
+        /* ══════════════════════════════════════════════════════════
+           CONTENEDOR PRINCIPAL DEL CONTENIDO (.content)
+           max-width: 1100px → limita el ancho en pantallas grandes
+           margin: 0 auto → centra el contenedor
+           display: grid con gap: 50px → separa las tarjetas entre sí
+        ══════════════════════════════════════════════════════════ */
+        .content {
+            position: relative;
+            z-index: 2;
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 60px 20px;
+            display: grid;
+            gap: 50px;
+        }
+
+        /* ══════════════════════════════════════════════════════════
+           TARJETA DE CIRCUITO (.circuit-card)
+           Cada diagrama vive dentro de una de estas tarjetas.
+           border-left: 5px → acento de color a la izquierda (cyan por defecto)
+           animation: fadeInUp → aparece subiendo desde abajo al cargar
+        ══════════════════════════════════════════════════════════ */
+        .circuit-card {
+            background: var(--card-bg);
+            border: 2px solid rgba(0, 217, 255, 0.2);
+            border-left: 5px solid var(--accent-cyan); /* borde izquierdo cyan */
+            border-radius: 20px;
+            padding: 40px;
+            animation: fadeInUp 0.8s ease-out both;
+        }
+
+        /* ── SEGUNDA TARJETA (Diagrama 2, paralelo) ──────────────
+           nth-child(2) selecciona la segunda .circuit-card.
+           Cambia el color del tema de cyan a naranja (#ff6b35).
+           animation-delay: la segunda tarjeta aparece 0.2s después.
+        ──────────────────────────────────────────────────────── */
+        .circuit-card:nth-child(2) { animation-delay: 0.2s; border-left-color: #ff6b35; }
+        .circuit-card:nth-child(2) .circuit-title { color: #ff6b35; text-shadow: 0 0 20px #ff6b35; }
+        .circuit-card:nth-child(2) .badge { background: rgba(255,107,53,0.15); color: #ff6b35; border-color: rgba(255,107,53,0.4); }
+        .circuit-card:nth-child(2) .component-icon { background: rgba(255,107,53,0.1); border-color: rgba(255,107,53,0.3); }
+        .circuit-card:nth-child(2) .component-name { color: #ff6b35; }
+
+        /* ── ANIMACIÓN: aparición desde abajo ────────────────────
+           Las tarjetas comienzan invisibles (opacity:0) y 40px abajo
+           de su posición final, y suben hasta su lugar en 0.8s.
+        ──────────────────────────────────────────────────────── */
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(40px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ── ENCABEZADO DE CADA TARJETA ──────────────────────────
+           Usa flexbox para poner el título y el badge en la misma fila.
+           flex-wrap: wrap → si no caben, bajan a la siguiente línea.
+        ──────────────────────────────────────────────────────── */
+        .circuit-header {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+
+        /* ── TÍTULO DE CADA DIAGRAMA ─────────────────────────── */
+        .circuit-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.6rem;
+            font-weight: 900;
+            color: var(--accent-cyan);
+            text-shadow: 0 0 20px var(--accent-cyan);
+        }
+
+        /* ── BADGE/ETIQUETA (ej: "Circuito en serie") ───────────
+           Pequeña pastilla redondeada con borde y fondo semitransparente.
+        ──────────────────────────────────────────────────────── */
+        .badge {
+            padding: 6px 14px;
+            border: 1px solid rgba(0,217,255,0.4);
+            background: rgba(0,217,255,0.1);
+            color: var(--accent-cyan);
+            border-radius: 30px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+        }
+
+        /* ══════════════════════════════════════════════════════════
+           CONTENEDOR DEL DIAGRAMA SVG (.diagram-container)
+           Fondo casi negro para resaltar las líneas de colores del SVG.
+           display: flex + justify-content: center → centra el SVG.
+           overflow: hidden → evita que el SVG se salga del contenedor.
+        ══════════════════════════════════════════════════════════ */
+        .diagram-container {
+            background: #0f0f0f;
+            border: 1px solid rgba(0,217,255,0.15);
+            border-radius: 14px;
+            padding: 30px;
+            margin-bottom: 30px;
+            display: flex;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        /* ── SVG responsivo ──────────────────────────────────────
+           max-width: 100% → el SVG nunca será más ancho que su contenedor
+           height: auto → mantiene proporciones al cambiar el ancho
+        ──────────────────────────────────────────────────────── */
+        .diagram-container svg {
+            max-width: 100%;
+            height: auto;
+        }
+
+        /* ══════════════════════════════════════════════════════════
+           ETIQUETA DE SECCIÓN (.section-label)
+           Texto pequeño en mayúsculas que sirve de título para
+           las subsecciones: "Componentes del circuito", "Video", etc.
+        ══════════════════════════════════════════════════════════ */
+        .section-label {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.85rem;
+            color: rgba(255,255,255,0.4);
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            margin-bottom: 16px;
+        }
+
+        /* ══════════════════════════════════════════════════════════
+           GRID DE COMPONENTES (.components-grid)
+           repeat(auto-fill, minmax(200px, 1fr)):
+           → crea tantas columnas como quepan, cada una mínimo 200px
+           → se adapta automáticamente a pantallas pequeñas
+        ══════════════════════════════════════════════════════════ */
+        .components-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 16px;
+            margin-bottom: 30px;
+        }
+
+        /* ── TARJETA DE CADA COMPONENTE ──────────────────────────
+           display: flex → el ícono y el texto están en fila
+           transition → el efecto hover es suave (0.3s)
+        ──────────────────────────────────────────────────────── */
+        .component-card {
+            background: #111;
+            border: 1px solid rgba(0,217,255,0.12);
+            border-radius: 12px;
+            padding: 18px;
+            display: flex;
+            gap: 14px;
+            align-items: flex-start;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        /* ── EFECTO HOVER EN TARJETA DE COMPONENTE ───────────────
+           Al pasar el mouse: la tarjeta sube 4px y aparece sombra cyan.
+        ──────────────────────────────────────────────────────── */
+        .component-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 30px rgba(0,217,255,0.15);
+        }
+
+        /* ── ÍCONO DEL COMPONENTE ────────────────────────────────
+           Cuadrado redondeado de 42x42px con fondo y borde semitransparente
+           flex-shrink: 0 → el ícono no se encoge si el texto es largo
+        ──────────────────────────────────────────────────────── */
+        .component-icon {
+            width: 42px;
+            height: 42px;
+            border-radius: 10px;
+            background: rgba(0,217,255,0.1);
+            border: 1px solid rgba(0,217,255,0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.3rem;
+            flex-shrink: 0;
+        }
+
+        /* ── NOMBRE DEL COMPONENTE ───────────────────────────── */
+        .component-name {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.75rem;
+            color: var(--accent-cyan);
+            margin-bottom: 5px;
+        }
+
+        /* ── DESCRIPCIÓN DEL COMPONENTE ──────────────────────── */
+        .component-desc {
+            font-size: 0.78rem;
+            color: rgba(255,255,255,0.6);
+            line-height: 1.6;
+        }
+
+        /* ══════════════════════════════════════════════════════════
+           CAJA DE EXPLICACIÓN (.explanation-box)
+           Fondo con gradiente muy sutil de cyan a morado.
+           border + border-radius → recuadro redondeado.
+        ══════════════════════════════════════════════════════════ */
+        .explanation-box {
+            background: linear-gradient(135deg, rgba(0,217,255,0.05), rgba(123,44,191,0.05));
+            border: 1px solid rgba(0,217,255,0.2);
+            border-radius: 14px;
+            padding: 24px;
+            margin-bottom: 20px;
+        }
+
+        .explanation-box h4 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.9rem;
+            color: var(--accent-cyan);
+            margin-bottom: 12px;
+        }
+
+        .explanation-box p {
+            color: rgba(255,255,255,0.75);
+            font-size: 0.88rem;
+            line-height: 1.9; /* interlineado cómodo para lectura */
+        }
+
+        /* ── La caja de explicación del Diagrama 2 cambia a naranja ── */
+        .circuit-card:nth-child(2) .explanation-box {
+            background: linear-gradient(135deg, rgba(255,107,53,0.05), rgba(123,44,191,0.05));
+            border-color: rgba(255,107,53,0.2);
+        }
+
+        .circuit-card:nth-child(2) .explanation-box h4 { color: #ff6b35; }
+
+        /* ══════════════════════════════════════════════════════════
+           CAJA DE ALERTA (.alert-box)
+           Fondo amarillo muy tenue y borde izquierdo amarillo sólido.
+           Se usa para "puntos importantes" o advertencias.
+           display: flex → el ícono ⚠️ y el texto van en fila.
+        ══════════════════════════════════════════════════════════ */
+        .alert-box {
+            background: rgba(255,230,0,0.06);
+            border: 1px solid rgba(255,230,0,0.3);
+            border-left: 4px solid var(--accent-yellow); /* acento amarillo izquierdo */
+            border-radius: 12px;
+            padding: 18px 20px;
+            display: flex;
+            gap: 12px;
+            align-items: flex-start;
+        }
+
+        .alert-box .alert-icon { font-size: 1.3rem; flex-shrink: 0; margin-top: 2px; }
+        .alert-box p { color: rgba(255,255,255,0.75); font-size: 0.85rem; line-height: 1.8; }
+        .alert-box strong { color: var(--accent-yellow); } /* texto importante en amarillo */
+
+        /* ══════════════════════════════════════════════════════════
+           ANIMACIÓN DE CORRIENTE ELÉCTRICA (.flow-path)
+           stroke-dasharray: "8 6" → línea punteada (8px línea, 6px hueco)
+           La animación mueve el offset de los puntos continuamente,
+           creando la ilusión de que la corriente "fluye" por el cable.
+        ══════════════════════════════════════════════════════════ */
+        .flow-path {
+            stroke-dasharray: 8 6;
+            animation: dash 1.2s linear infinite;
+        }
+
+        /* ── El offset se mueve -28 px cada 1.2s (negativo = hacia adelante) */
+        @keyframes dash {
+            to { stroke-dashoffset: -28; }
+        }
+
+        /* ══════════════════════════════════════════════════════════
+           FOOTER (.footer)
+           Centrado, con borde superior separador.
+           z-index: 2 → aparece sobre la cuadrícula de fondo.
+        ══════════════════════════════════════════════════════════ */
+        .footer {
+            position: relative;
+            z-index: 2;
+            text-align: center;
+            padding: 60px 20px;
+            border-top: 1px solid rgba(0, 217, 255, 0.2);
+        }
+
+        .team-credits {
+            font-size: 0.9rem;
+            color: rgba(255, 255, 255, 0.55);
+            line-height: 1.9;
+        }
+
+        .team-credits strong { color: var(--accent-cyan); }
+
+        /* ── MEDIA QUERY: ajustes para pantallas pequeñas (<600px) ──
+           Las tarjetas reducen su padding y el grid de componentes
+           pasa a dos columnas en lugar de auto-fill.
+        ──────────────────────────────────────────────────────── */
+        @media (max-width: 600px) {
+            .circuit-card { padding: 24px 16px; }
+            .components-grid { grid-template-columns: 1fr 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════════════════════════
+     ENCABEZADO DE LA PÁGINA
+     Contiene: título principal, subtítulo, botón de regreso
+     La imagen de fondo viene de Unsplash (foto de circuito)
+════════════════════════════════════════════════════════════════ -->
+<div class="page-header">
+    <h1>Control de led con potenciometro y led en paralelo</h1>
+    <p>Análisis visual de los esquemas eléctricos</p>
+    <!-- El href apunta a otra página del proyecto -->
+    <a href="circuito.html" class="btn-back">← Volver a Circuitos</a>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════
+     CONTENEDOR PRINCIPAL: agrupa todas las tarjetas en un grid
+════════════════════════════════════════════════════════════════ -->
+<div class="content">
+
+    <!-- ══════════════════════════════════════════════════════════
+         ▌DIAGRAMA 1 – CIRCUITO EN SERIE
+         ▌Color del tema: CYAN (#00d9ff)
+         ▌Componentes: Batería → Switch → Resistencia 10kΩ → LED → Resistencia fija
+         ▌La corriente viaja en un único camino cerrado.
+    ══════════════════════════════════════════════════════════ -->
+    <div class="circuit-card">
+        <!-- Encabezado de la tarjeta con título y badge -->
+        <div class="circuit-header">
+            <span class="circuit-title">DIAGRAMA 1</span>
+            <span class="badge">Circuito en serie</span>
+        </div>
+
+        <!-- ── DIAGRAMA SVG DEL CIRCUITO EN SERIE ──────────────
+             SVG (Scalable Vector Graphics): gráfico vectorial que se
+             dibuja con código. Cada elemento es una forma geométrica.
+             viewBox="0 0 700 320": el área de dibujo es 700×320 unidades.
+             width="660": se renderiza a 660px (pero se adapta con CSS).
+        ──────────────────────────────────────────────────────── -->
+        <div class="diagram-container">
+            <svg viewBox="0 0 700 320" width="660" xmlns="http://www.w3.org/2000/svg">
+
+                <!-- ── FILTRO DE RESPLANDOR (glow1) ──────────────
+                     feGaussianBlur desenfoca la copia del elemento.
+                     feMerge combina el desenfoque + el original para
+                     crear el efecto de "brillo" alrededor del LED.
+                ──────────────────────────────────────────────── -->
+                <defs>
+                    <filter id="glow1">
+                        <feGaussianBlur stdDeviation="3" result="blur"/>
+                        <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+                    </filter>
+                </defs>
+
+                <!-- ── CABLE DEL CIRCUITO (estructura estática) ──
+                     rect (rectángulo) sin relleno y con borde gris oscuro.
+                     Este rectángulo representa los cables del circuito
+                     dibujados como un "loop" rectangular.
+                ──────────────────────────────────────────────── -->
+                <rect x="60" y="60" width="580" height="200" rx="0"
+                      fill="none" stroke="#333" stroke-width="2"/>
+
+                <!-- ── FLUJO DE CORRIENTE ANIMADO ─────────────────
+                     El mismo rectángulo pero con trazo cyan punteado.
+                     La clase "flow-path" activa la animación CSS "dash"
+                     que hace que los puntos se muevan, simulando corriente.
+                     opacity="0.5": semitransparente para no opacar el cable gris.
+                ──────────────────────────────────────────────── -->
+                <rect x="60" y="60" width="580" height="200" rx="0"
+                      fill="none" stroke="#00d9ff" stroke-width="2.5"
+                      stroke-dasharray="8 6"
+                      class="flow-path" opacity="0.5"/>
+
+                <!-- ── BATERÍA ────────────────────────────────────
+                     circle: círculo en el extremo izquierdo (cx=60, cy=160).
+                     Dos "line" que salen del círculo representan los terminales.
+                     Los "text" + y − indican polaridad.
+                     El texto "BATERÍA" aparece debajo.
+                ──────────────────────────────────────────────── -->
+                <circle cx="60" cy="160" r="38" fill="#111" stroke="#00d9ff" stroke-width="2"/>
+                <line x1="60" y1="140" x2="60" y2="128" stroke="#00d9ff" stroke-width="2"/>
+                <line x1="60" y1="180" x2="60" y2="192" stroke="#00d9ff" stroke-width="2"/>
+                <text x="60" y="155" text-anchor="middle" fill="#00d9ff" font-size="16" font-weight="bold" font-family="Space Mono">+</text>
+                <text x="60" y="175" text-anchor="middle" fill="#00d9ff" font-size="16" font-family="Space Mono">−</text>
+                <text x="60" y="215" text-anchor="middle" fill="rgba(255,255,255,0.5)" font-size="11" font-family="Space Mono">BATERÍA</text>
+
+                <!-- ── SWITCH (INTERRUPTOR) ───────────────────────
+                     Dos círculos son los terminales del switch.
+                     Una línea diagonal entre ellos representa la "palanca"
+                     del interruptor en posición abierta (circuito abierto).
+                     El texto "SWITCH" aparece encima.
+                ──────────────────────────────────────────────── -->
+                <circle cx="260" cy="60" r="5" fill="#00d9ff"/>
+                <circle cx="320" cy="60" r="5" fill="#00d9ff"/>
+                <line x1="260" y1="60" x2="305" y2="38" stroke="#00d9ff" stroke-width="2.5"/>
+                <text x="290" y="28" text-anchor="middle" fill="rgba(255,255,255,0.55)" font-size="11" font-family="Space Mono">SWITCH</text>
+
+                <!-- ── RESISTENCIA VARIABLE 10kΩ (potenciómetro) ──
+                     transform="translate(360,60)": mueve el origen del grupo
+                     a la posición (360,60) para dibujar desde ahí.
+                     polyline: forma de zigzag que representa una resistencia
+                     (símbolo estándar americano).
+                     La "flecha" (line + polygon) indica que es variable.
+                     El texto "10k" es el valor de la resistencia.
+                ──────────────────────────────────────────────── -->
+                <g transform="translate(360,60)">
+                    <!-- zigzag de la resistencia -->
+                    <polyline points="-40,0 -30,0 -22,-16 -14,16 -6,-16 2,16 10,-16 18,16 26,0 36,0"
+                              fill="none" stroke="#00d9ff" stroke-width="2.5"/>
+                    <!-- flecha indicando que es variable (ajustable) -->
+                    <line x1="-5" y1="-28" x2="5" y2="-6" stroke="#00d9ff" stroke-width="2"/>
+                    <polygon points="5,-6 -2,-14 10,-12" fill="#00d9ff"/>
+                    <text x="-2" y="-34" text-anchor="middle" fill="#00d9ff" font-size="13" font-family="Orbitron" font-weight="700">10k</text>
+                </g>
+
+                <!-- ── LED (Diodo Emisor de Luz) ───────────────────
+                     transform="translate(500,60)": posición del LED.
+                     polygon: triángulo que representa el símbolo del diodo LED.
+                     Dos "line" forman el cátodo (barra) y la conexión.
+                     Las líneas amarillas con flecha son los "rayos de luz"
+                     que salen del LED cuando está encendido.
+                     filter="url(#glow1)": aplica el resplandor definido en <defs>.
+                ──────────────────────────────────────────────── -->
+                <g transform="translate(500,60)">
+                    <!-- triángulo del diodo (apunta hacia abajo = dirección corriente) -->
+                    <polygon points="-15,0 15,0 0,26" fill="#00d9ff" opacity="0.8" filter="url(#glow1)"/>
+                    <!-- línea del ánodo (entrada de corriente) -->
+                    <line x1="-15" y1="0" x2="15" y2="0" stroke="#00d9ff" stroke-width="2.5"/>
+                    <!-- conexión hacia el siguiente componente -->
+                    <line x1="0" y1="26" x2="0" y2="38" stroke="#00d9ff" stroke-width="2"/>
+                    <!-- rayo de luz 1 (arriba-derecha) -->
+                    <line x1="18" y1="-10" x2="30" y2="-22" stroke="#ffe600" stroke-width="2"/>
+                    <polygon points="30,-22 22,-20 24,-28" fill="#ffe600"/>
+                    <!-- rayo de luz 2 (derecha) -->
+                    <line x1="24" y1="2" x2="38" y2="-4" stroke="#ffe600" stroke-width="2"/>
+                    <polygon points="38,-4 30,-6 32,-14" fill="#ffe600"/>
+                    <text x="0" y="55" text-anchor="middle" fill="rgba(255,255,255,0.55)" font-size="11" font-family="Space Mono">LED</text>
+                </g>
+
+                <!-- ── RESISTENCIA FIJA (protectora del LED) ──────
+                     Posición: translate(590,160) → columna derecha, centro vertical.
+                     polyline vertical con zigzag: símbolo de resistencia orientado
+                     verticalmente (en el cable de retorno hacia la batería).
+                     "R" es la etiqueta estándar de resistencia.
+                ──────────────────────────────────────────────── -->
+                <g transform="translate(590,160)">
+                    <polyline points="0,-50 0,-40 -16,-32 16,-24 -16,-16 16,-8 -16,0 0,8 0,18"
+                              fill="none" stroke="#00d9ff" stroke-width="2.5"/>
+                    <text x="22" y="-18" fill="rgba(255,255,255,0.55)" font-size="11" font-family="Space Mono">R</text>
+                </g>
+
+                <!-- ── ETIQUETAS INFORMATIVAS DE LOS CABLES ───────
+                     Texto semitransparente que indica cuál es el cable
+                     positivo (+) y cuál el negativo (−) del circuito.
+                ──────────────────────────────────────────────── -->
+                <text x="155" y="48" fill="rgba(255,255,255,0.35)" font-size="10" font-family="Space Mono">cable +</text>
+                <text x="155" y="278" fill="rgba(255,255,255,0.35)" font-size="10" font-family="Space Mono">cable −</text>
+            </svg>
+        </div>
+
+        <!-- ── COMPONENTES DEL CIRCUITO 1 ──────────────────────── -->
+        <p class="section-label">Componentes del circuito</p>
+        <div class="components-grid">
+            <div class="component-card">
+                <div class="component-icon">🔋</div>
+                <div>
+                    <div class="component-name">Batería</div>
+                    <div class="component-desc">Fuente de energía que impulsa la corriente por todo el circuito.</div>
+                </div>
+            </div>
+            <div class="component-card">
+                <div class="component-icon">🔘</div>
+                <div>
+                    <div class="component-name">Switch (interruptor)</div>
+                    <div class="component-desc">Abre o cierra el circuito. Cuando está abierto, no fluye corriente.</div>
+                </div>
+            </div>
+            <div class="component-card">
+                <div class="component-icon">〰️</div>
+                <div>
+                    <div class="component-name">Resistencia variable 10kΩ</div>
+                    <div class="component-desc">Permite ajustar la corriente manualmente, controlando el brillo del LED.</div>
+                </div>
+            </div>
+            <div class="component-card">
+                <div class="component-icon">💡</div>
+                <div>
+                    <div class="component-name">LED</div>
+                    <div class="component-desc">Emite luz cuando la corriente fluye en la dirección correcta (ánodo → cátodo).</div>
+                </div>
+            </div>
+            <div class="component-card">
+                <div class="component-icon">🔩</div>
+                <div>
+                    <div class="component-name">Resistencia fija</div>
+                    <div class="component-desc">Protege el LED limitando la corriente máxima que puede pasar.</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ── EXPLICACIÓN DE CÓMO FUNCIONA EL CIRCUITO 1 ───────── -->
+        <div class="explanation-box">
+            <h4>⚡ ¿Cómo funciona este circuito?</h4>
+            <p>
+                Todos los componentes están conectados <strong>uno tras otro en una sola trayectoria</strong>: batería → switch → resistencia variable (10kΩ) → LED → resistencia fija → batería. Esto lo hace un circuito <strong>en serie</strong>.
+                <br><br>
+                La corriente que sale de la batería pasa obligatoriamente por cada componente. Si el switch está abierto, el circuito se interrumpe y el LED se apaga. Al girar la resistencia variable se cambia la cantidad de corriente y por tanto el brillo del LED.
+            </p>
+        </div>
+
+        <!-- ── ALERTA: característica clave del circuito en serie ─── -->
+        <div class="alert-box">
+            <span class="alert-icon">💡</span>
+            <p><strong>Característica clave del circuito en serie:</strong> si cualquier componente falla o se desconecta, toda la corriente se detiene. El voltaje de la batería se <strong>reparte</strong> entre todos los componentes.</p>
+        </div>
+
+        <!-- ── VIDEO DEL MONTAJE REAL ─────────────────────────────
+             El elemento <video> incrusta un video directamente en la página.
+             controls: muestra botones de play, pausa, volumen, etc.
+             <source src="primero.mp4">: la fuente del video (archivo local).
+             El texto de respaldo aparece si el navegador no soporta video.
+        ──────────────────────────────────────────────────────── -->
+        <p class="section-label" style="margin-top:30px;">Video del montaje</p>
+        <div style="background:#0f0f0f; border:1px solid rgba(0,217,255,0.15); border-radius:14px; overflow:hidden; margin-top:10px;">
+            <video controls style="width:100%; display:block; max-height:420px; background:#000;">
+                <source src="primero.mp4" type="video/mp4">
+                Tu navegador no soporta el elemento de video.
+            </video>
+        </div>
+    </div>
+
+
+    <!-- ══════════════════════════════════════════════════════════
+         ▌DIAGRAMA 2 – CIRCUITO EN PARALELO
+         ▌Color del tema: NARANJA (#ff6b35) — aplicado via nth-child(2) en CSS
+         ▌Componentes: Batería + Resistencia → 3 LEDs en ramas independientes
+         ▌Cada LED tiene su propio camino entre el cable + y el cable −
+    ══════════════════════════════════════════════════════════ -->
+    <div class="circuit-card">
+        <div class="circuit-header">
+            <span class="circuit-title">DIAGRAMA 2</span>
+            <span class="badge">Circuito en paralelo</span>
+        </div>
+
+        <!-- ── DIAGRAMA SVG DEL CIRCUITO EN PARALELO ─────────────
+             viewBox="0 0 700 360": un poco más alto que el Diagrama 1
+             porque los LEDs cuelgan verticalmente desde los cables horizontales.
+        ──────────────────────────────────────────────────────── -->
+        <div class="diagram-container">
+            <svg viewBox="0 0 700 360" width="660" xmlns="http://www.w3.org/2000/svg">
+
+                <!-- ── FILTRO DE RESPLANDOR PARA LOS LEDs (glow2) ──
+                     stdDeviation="4": un poco más difuso que glow1.
+                ──────────────────────────────────────────────── -->
+                <defs>
+                    <filter id="glow2">
+                        <feGaussianBlur stdDeviation="4" result="blur"/>
+                        <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+                    </filter>
+                </defs>
+
+                <!-- ── CABLE POSITIVO (+) HORIZONTAL ─────────────
+                     Línea horizontal en y=80 (parte superior del diagrama).
+                     Se dibuja dos veces: una estática (naranja sólido)
+                     y otra animada (flow-path, punteada y semitransparente)
+                     para mostrar el flujo de corriente.
+                ──────────────────────────────────────────────── -->
+                <line x1="60" y1="80" x2="650" y2="80" stroke="#ff6b35" stroke-width="2.5"/>
+                <line x1="60" y1="80" x2="650" y2="80" stroke="#ff6b35" stroke-width="2.5"
+                      stroke-dasharray="8 6" class="flow-path" opacity="0.5"/>
+
+                <!-- ── CABLE NEGATIVO (−) HORIZONTAL ─────────────
+                     Línea horizontal en y=290 (parte inferior).
+                     La corriente regresa a la batería por aquí.
+                ──────────────────────────────────────────────── -->
+                <line x1="60" y1="290" x2="650" y2="290" stroke="#ff6b35" stroke-width="2.5"/>
+
+                <!-- ── CABLES VERTICALES DEL LADO DE LA BATERÍA ──
+                     Dos segmentos que conectan los cables horizontales
+                     con los terminales de la batería (evitan el círculo de la batería).
+                ──────────────────────────────────────────────── -->
+                <line x1="60" y1="80" x2="60" y2="122" stroke="#ff6b35" stroke-width="2.5"/>
+                <line x1="60" y1="198" x2="60" y2="290" stroke="#ff6b35" stroke-width="2.5"/>
+
+                <!-- ── BATERÍA ────────────────────────────────────
+                     Mismo diseño que en el Diagrama 1, pero en naranja.
+                ──────────────────────────────────────────────── -->
+                <circle cx="60" cy="160" r="38" fill="#111" stroke="#ff6b35" stroke-width="2"/>
+                <line x1="60" y1="140" x2="60" y2="128" stroke="#ff6b35" stroke-width="2"/>
+                <line x1="60" y1="180" x2="60" y2="192" stroke="#ff6b35" stroke-width="2"/>
+                <text x="60" y="155" text-anchor="middle" fill="#ff6b35" font-size="16" font-weight="bold" font-family="Space Mono">+</text>
+                <text x="60" y="175" text-anchor="middle" fill="#ff6b35" font-size="16" font-family="Space Mono">−</text>
+                <text x="60" y="320" text-anchor="middle" fill="rgba(255,255,255,0.5)" font-size="11" font-family="Space Mono">BATERÍA</text>
+
+                <!-- ── RESISTENCIA FIJA (en el cable positivo) ────
+                     transform="translate(185,80)": posicionada en el cable + superior.
+                     Es una sola resistencia compartida por los 3 LEDs.
+                     El zigzag horizontal representa el símbolo de resistencia.
+                ──────────────────────────────────────────────── -->
+                <g transform="translate(185,80)">
+                    <polyline points="-40,0 -30,0 -22,-16 -14,16 -6,-16 2,16 10,-16 18,16 26,0 36,0"
+                              fill="none" stroke="#ff6b35" stroke-width="2.5"/>
+                    <text x="-2" y="-26" text-anchor="middle" fill="rgba(255,255,255,0.55)" font-size="11" font-family="Space Mono">R</text>
+                </g>
+
+                <!-- ── LED 1 (primera rama paralela) ─────────────
+                     translate(310,185): LED centrado en la primera rama.
+                     Dos líneas verticales conectan al cable + (arriba) y − (abajo).
+                     El polygon + dos lines forman el símbolo estándar del LED:
+                       • línea superior: ánodo (entrada de corriente)
+                       • triángulo: cuerpo del diodo
+                       • línea horizontal inferior: cátodo (barra de bloqueo)
+                       • línea inferior: salida hacia el cable negativo
+                ──────────────────────────────────────────────── -->
+                <g transform="translate(310,185)">
+                    <!-- conexión al cable + (arriba) -->
+                    <line x1="0" y1="-105" x2="0" y2="-60" stroke="#ff6b35" stroke-width="2"/>
+                    <!-- triángulo del diodo (ánodo arriba, punta abajo) -->
+                    <polygon points="-18,-60 18,-60 0,-28" fill="#ff6b35" opacity="0.9" filter="url(#glow2)"/>
+                    <!-- línea del ánodo -->
+                    <line x1="-18" y1="-60" x2="18" y2="-60" stroke="#ff6b35" stroke-width="2"/>
+                    <!-- línea del cátodo (barra horizontal en la punta) -->
+                    <line x1="-18" y1="-28" x2="18" y2="-28" stroke="#ff6b35" stroke-width="2.5"/>
+                    <!-- conexión al cable − (abajo) -->
+                    <line x1="0" y1="-28" x2="0" y2="105" stroke="#ff6b35" stroke-width="2"/>
+                    <text x="0" y="118" text-anchor="middle" fill="rgba(255,255,255,0.55)" font-size="11" font-family="Space Mono">LED 1</text>
+                </g>
+
+                <!-- ── LED 2 (segunda rama paralela) ─────────────
+                     Mismo símbolo que LED 1, desplazado 150px a la derecha.
+                     Cada LED tiene su propia rama independiente.
+                ──────────────────────────────────────────────── -->
+                <g transform="translate(460,185)">
+                    <line x1="0" y1="-105" x2="0" y2="-60" stroke="#ff6b35" stroke-width="2"/>
+                    <polygon points="-18,-60 18,-60 0,-28" fill="#ff6b35" opacity="0.9" filter="url(#glow2)"/>
+                    <line x1="-18" y1="-60" x2="18" y2="-60" stroke="#ff6b35" stroke-width="2"/>
+                    <line x1="-18" y1="-28" x2="18" y2="-28" stroke="#ff6b35" stroke-width="2.5"/>
+                    <line x1="0" y1="-28" x2="0" y2="105" stroke="#ff6b35" stroke-width="2"/>
+                    <text x="0" y="118" text-anchor="middle" fill="rgba(255,255,255,0.55)" font-size="11" font-family="Space Mono">LED 2</text>
+                </g>
+
+                <!-- ── LED 3 (tercera rama paralela) ─────────────
+                     Mismo símbolo, desplazado otros 150px a la derecha.
+                ──────────────────────────────────────────────── -->
+                <g transform="translate(610,185)">
+                    <line x1="0" y1="-105" x2="0" y2="-60" stroke="#ff6b35" stroke-width="2"/>
+                    <polygon points="-18,-60 18,-60 0,-28" fill="#ff6b35" opacity="0.9" filter="url(#glow2)"/>
+                    <line x1="-18" y1="-60" x2="18" y2="-60" stroke="#ff6b35" stroke-width="2"/>
+                    <line x1="-18" y1="-28" x2="18" y2="-28" stroke="#ff6b35" stroke-width="2.5"/>
+                    <line x1="0" y1="-28" x2="0" y2="105" stroke="#ff6b35" stroke-width="2"/>
+                    <text x="0" y="118" text-anchor="middle" fill="rgba(255,255,255,0.55)" font-size="11" font-family="Space Mono">LED 3</text>
+                </g>
+
+                <!-- ── CABLE VERTICAL DERECHO ─────────────────────
+                     Cierra el circuito en el extremo derecho,
+                     conectando el cable + (y=80) con el cable − (y=290).
+                ──────────────────────────────────────────────── -->
+                <line x1="650" y1="80" x2="650" y2="290" stroke="#ff6b35" stroke-width="2.5"/>
+
+                <!-- ── ETIQUETA INFORMATIVA ───────────────────────
+                     Indica que todos los LEDs reciben "la misma tensión"
+                     porque están conectados entre los mismos dos cables.
+                ──────────────────────────────────────────────── -->
+                <text x="130" y="68" fill="rgba(255,255,255,0.35)" font-size="10" font-family="Space Mono">misma tensión →</text>
+            </svg>
+        </div>
+
+        <!-- ── COMPONENTES DEL CIRCUITO 2 ──────────────────────── -->
+        <p class="section-label">Componentes del circuito</p>
+        <div class="components-grid">
+            <div class="component-card">
+                <div class="component-icon">🔋</div>
+                <div>
+                    <div class="component-name">Batería</div>
+                    <div class="component-desc">Fuente de energía compartida por todos los LEDs simultáneamente.</div>
+                </div>
+            </div>
+            <div class="component-card">
+                <div class="component-icon">〰️</div>
+                <div>
+                    <div class="component-name">Resistencia (R)</div>
+                    <div class="component-desc">Una sola resistencia en serie con la batería que limita la corriente total del circuito.</div>
+                </div>
+            </div>
+            <div class="component-card">
+                <div class="component-icon">💡</div>
+                <div>
+                    <div class="component-name">LED 1, 2 y 3</div>
+                    <div class="component-desc">Tres LEDs en ramas paralelas. Cada uno recibe el mismo voltaje y brilla igual.</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ── EXPLICACIÓN DE CÓMO FUNCIONA EL CIRCUITO 2 ────────── -->
+        <div class="explanation-box">
+            <h4>⚡ ¿Cómo funciona este circuito?</h4>
+            <p>
+                Los tres LEDs están conectados <strong>en paralelo</strong>: cada uno tiene su propia rama entre los dos cables principales (positivo y negativo). La corriente que sale de la batería se <strong>divide</strong> en tres caminos, uno por cada LED.
+                <br><br>
+                Esto significa que todos los LEDs reciben <strong>el mismo voltaje</strong> y brillan con la misma intensidad. Si uno de los LEDs falla o se desconecta, los otros <strong>siguen funcionando</strong> normalmente porque cada rama es independiente.
+                <br><br>
+                Hay una resistencia colocada antes de la división de ramas, lo que limita la corriente total que sale de la batería.
+            </p>
+        </div>
+
+        <!-- ── ALERTA: advertencia técnica sobre la resistencia compartida ── -->
+        <div class="alert-box">
+            <span class="alert-icon">⚠️</span>
+            <p><strong>Punto importante:</strong> idealmente cada LED debería tener su <strong>propia resistencia individual</strong> para protegerlo mejor. Con una sola resistencia compartida, si un LED falla en cortocircuito, puede hacer que los demás reciban más corriente de la que soportan.</p>
+        </div>
+
+        <!-- ── VIDEO DEL MONTAJE REAL ─────────────────────────────
+             El video "segundo.mp4" debe estar en la misma carpeta que este HTML.
+        ──────────────────────────────────────────────────────── -->
+        <p class="section-label" style="margin-top:30px;">Video del montaje</p>
+        <div style="background:#0f0f0f; border:1px solid rgba(255,107,53,0.15); border-radius:14px; overflow:hidden; margin-top:10px;">
+            <video controls style="width:100%; display:block; max-height:420px; background:#000;">
+                <source src="segundo.mp4" type="video/mp4">
+                Tu navegador no soporta el elemento de video.
+            </video>
+        </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════════
+         ▌TABLA COMPARATIVA: Serie vs Paralelo
+         ▌Color del tema: MORADO (#7b2cbf / #a855f7)
+         ▌Compara 5 características clave entre ambos circuitos.
+    ══════════════════════════════════════════════════════════ -->
+    <!-- Los estilos de color morado se aplican directamente con style="" inline
+         porque esta es la tercera tarjeta y el CSS solo personaliza nth-child(2) -->
+    <div class="circuit-card" style="border-left-color: #7b2cbf; animation-delay: 0.4s;">
+        <div class="circuit-header">
+            <span class="circuit-title" style="color:#7b2cbf; text-shadow: 0 0 20px #7b2cbf;">COMPARATIVA</span>
+            <span class="badge" style="color:#a855f7; border-color:rgba(168,85,247,0.4); background:rgba(168,85,247,0.1);">Serie vs Paralelo</span>
+        </div>
+
+        <!-- overflow-x: auto → si la tabla no cabe en móvil, aparece scroll horizontal -->
+        <div style="overflow-x:auto;">
+            <table style="width:100%; border-collapse:collapse; font-size:0.87rem; font-family:'Space Mono',monospace;">
+                <!-- ── ENCABEZADOS DE LA TABLA ───────────────────
+                     border-collapse:collapse: elimina el espacio entre celdas.
+                     La fila de encabezados tiene un borde inferior morado.
+                ──────────────────────────────────────────────── -->
+                <thead>
+                    <tr style="border-bottom:2px solid rgba(168,85,247,0.3);">
+                        <th style="padding:14px 12px; text-align:left; color:rgba(255,255,255,0.45); font-weight:400; text-transform:uppercase; letter-spacing:0.1em; font-size:0.75rem;">Característica</th>
+                        <th style="padding:14px 12px; text-align:center; color:#00d9ff;">Diagrama 1 (Serie)</th>
+                        <th style="padding:14px 12px; text-align:center; color:#ff6b35;">Diagrama 2 (Paralelo)</th>
+                    </tr>
+                </thead>
+                <!-- ── FILAS DE DATOS ─────────────────────────────
+                     Cada <tr> es una característica a comparar.
+                     Cada fila tiene un borde inferior muy sutil para separación.
+                ──────────────────────────────────────────────── -->
+                <tbody>
+                    <tr style="border-bottom:1px solid rgba(255,255,255,0.06);">
+                        <td style="padding:14px 12px; color:rgba(255,255,255,0.65);">Trayectoria de corriente</td>
+                        <td style="padding:14px 12px; text-align:center; color:rgba(255,255,255,0.8);">Una sola</td>
+                        <td style="padding:14px 12px; text-align:center; color:rgba(255,255,255,0.8);">Múltiples ramas</td>
+                    </tr>
+                    <tr style="border-bottom:1px solid rgba(255,255,255,0.06);">
+                        <td style="padding:14px 12px; color:rgba(255,255,255,0.65);">Voltaje en cada LED</td>
+                        <td style="padding:14px 12px; text-align:center; color:rgba(255,255,255,0.8);">Se reparte entre todos</td>
+                        <td style="padding:14px 12px; text-align:center; color:rgba(255,255,255,0.8);">Igual en todos</td>
+                    </tr>
+                    <tr style="border-bottom:1px solid rgba(255,255,255,0.06);">
+                        <td style="padding:14px 12px; color:rgba(255,255,255,0.65);">Si un LED falla</td>
+                        <td style="padding:14px 12px; text-align:center; color:rgba(255,255,255,0.8);">Todos se apagan</td>
+                        <td style="padding:14px 12px; text-align:center; color:rgba(255,255,255,0.8);">Los demás siguen</td>
+                    </tr>
+                    <tr style="border-bottom:1px solid rgba(255,255,255,0.06);">
+                        <td style="padding:14px 12px; color:rgba(255,255,255,0.65);">Control individual</td>
+                        <td style="padding:14px 12px; text-align:center; color:rgba(255,255,255,0.8);">No</td>
+                        <td style="padding:14px 12px; text-align:center; color:rgba(255,255,255,0.8);">Sí (con switch por rama)</td>
+                    </tr>
+                    <tr>
+                        <td style="padding:14px 12px; color:rgba(255,255,255,0.65);">Uso típico</td>
+                        <td style="padding:14px 12px; text-align:center; color:rgba(255,255,255,0.8);">Luces navideñas antiguas</td>
+                        <td style="padding:14px 12px; text-align:center; color:rgba(255,255,255,0.8);">Instalaciones eléctricas de casa</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</div><!-- fin .content -->
+
+<!-- ══════════════════════════════════════════════════════════════
+     FOOTER: créditos del equipo que realizó el trabajo
+     border-top: línea separadora sutil en la parte superior
+════════════════════════════════════════════════════════════════ -->
+<footer class="footer">
+    <div class="team-credits">
+        <strong>Realizado por:</strong><br>
+        PEREZ HERNANDEZ LAURA NAOMI • FLORES FLORES MARCO ANTONIO<br>
+        Rodríguez Espinosa Génesis Ayde • González Espinosa Noé de Jesús
+    </div>
+</footer>
+
+</body>
+</html>
