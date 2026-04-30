@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Circuito en serie y paralelo</title>
+    <link href="portada.jpeg" rel="stylesheet">
+    <style>
+        :root {
+            --primary-black: #0a0a0a;
+            --accent-cyan: #00ffaa;
+            --accent-electric: #7b2cbf;
+            --text-white: #ffffff;
+            --card-bg: #1a1a1a;
+            --hover-glow: rgba(0, 255, 170, 0.3);
+        }
+
+        ::selection {
+            background: #f0e000;
+            color: #111111;
+            text-shadow: none;
+        }
+
+        *::selection {
+            background: #f0e000;
+            color: #111111;
+            text-shadow: none;
+        }
+
+        p::selection, h3::selection, span::selection, a::selection, strong::selection {
+            background: #f0e000;
+            color: #111111;
+            text-shadow: none;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Space Mono', monospace;
+            background: var(--primary-black);
+            color: var(--text-white);
+            overflow-x: hidden;
+            min-height: 100vh;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background:
+                repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0, 217, 255, 0.03) 2px, rgba(0, 217, 255, 0.03) 4px),
+                repeating-linear-gradient(90deg, transparent, transparent 2px, rgba(0, 217, 255, 0.03) 2px, rgba(0, 217, 255, 0.03) 4px);
+            pointer-events: none;
+            animation: gridMove 20s linear infinite;
+            z-index: 0;
+        }
+
+        @keyframes gridMove {
+            0% { transform: translate(0, 0); }
+            100% { transform: translate(50px, 50px); }
+        }
+
+        .page-header {
+            position: relative;
+            z-index: 2;
+            padding: 60px 20px 40px;
+            text-align: center;
+            background: linear-gradient(135deg, rgba(10,10,10,0.95), rgba(123,44,191,0.2)),
+                        url('https://images.unsplash.com/photo-1518770660439-4636190af475?w=1920&q=80') center/cover;
+            border-bottom: 2px solid rgba(0, 217, 255, 0.3);
+        }
+
+        .page-header h1 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: clamp(1.5rem, 4vw, 2.8rem);
+            font-weight: 900;
+            color: var(--accent-cyan);
+            letter-spacing: 0.08em;
+            text-shadow:
+                0 0 20px var(--accent-cyan),
+                0 0 40px var(--accent-cyan),
+                0 0 80px rgba(0, 217, 255, 0.5);
+            animation: glowPulse 3s ease-in-out infinite;
+            margin-bottom: 20px;
+        }
+
+        @keyframes glowPulse {
+            0%, 100% { text-shadow: 0 0 20px var(--accent-cyan), 0 0 40px var(--accent-cyan); }
+            50% { text-shadow: 0 0 30px var(--accent-cyan), 0 0 60px var(--accent-cyan), 0 0 90px rgba(0,255,170,0.8); }
+        }
+
+        .page-header::after {
+            content: '';
+            display: block;
+            width: 120px;
+            height: 4px;
+            background: linear-gradient(90deg, transparent, var(--accent-cyan), transparent);
+            margin: 0 auto;
+        }
+
+        .btn-back {
+            display: inline-block;
+            margin-top: 25px;
+            padding: 12px 28px;
+            border: 2px solid var(--accent-cyan);
+            color: var(--text-white);
+            font-family: 'Space Mono', monospace;
+            font-size: 0.85rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            text-decoration: none;
+            border-radius: 8px;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s;
+        }
+
+        .btn-back::before {
+            content: '';
+            position: absolute;
+            top: 0; left: -100%;
+            width: 100%; height: 100%;
+            background: linear-gradient(90deg, transparent, var(--accent-cyan), transparent);
+            transition: left 0.5s;
+        }
+
+        .btn-back:hover::before { left: 100%; }
+        .btn-back:hover {
+            background: var(--accent-cyan);
+            color: var(--primary-black);
+            box-shadow: 0 0 20px var(--hover-glow);
+        }
+
+        .content {
+            position: relative;
+            z-index: 2;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 60px 20px;
+        }
+
+        .glossary-grid {
+            display: grid;
+            gap: 35px;
+        }
+
+        .glossary-item {
+            background: var(--card-bg);
+            border: 2px solid rgba(0, 217, 255, 0.2);
+            border-left: 5px solid var(--accent-cyan);
+            border-radius: 20px;
+            padding: 35px;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            animation: fadeInUp 0.8s ease-out both;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .glossary-item::before {
+            content: '';
+            position: absolute;
+            top: -2px; left: -2px; right: -2px; bottom: -2px;
+            background: linear-gradient(135deg, var(--accent-cyan), var(--accent-electric));
+            border-radius: 20px;
+            opacity: 0;
+            transition: opacity 0.4s;
+            z-index: -1;
+        }
+
+        .glossary-item:hover {
+            transform: translateX(10px);
+            box-shadow: 0 10px 40px rgba(0, 217, 255, 0.25), 0 0 0 1px var(--accent-cyan);
+        }
+
+        .glossary-item:hover::before { opacity: 1; }
+
+        .glossary-item:nth-child(1) { animation-delay: 0.1s; }
+        .glossary-item:nth-child(2) { animation-delay: 0.2s; }
+        .glossary-item:nth-child(3) { animation-delay: 0.3s; }
+        .glossary-item:nth-child(4) { animation-delay: 0.4s; }
+        .glossary-item:nth-child(5) { animation-delay: 0.5s; }
+        .glossary-item:nth-child(6) { animation-delay: 0.6s; }
+        .glossary-item:nth-child(7) { animation-delay: 0.7s; }
+        .glossary-item:nth-child(8) { animation-delay: 0.8s; }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(40px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .glossary-item h3 {
+            font-family: 'Orbitron', sans-serif;
+            color: var(--accent-cyan);
+            margin-bottom: 15px;
+            font-size: 1.3rem;
+            letter-spacing: 0.05em;
+        }
+
+        .glossary-item p {
+            color: rgba(255, 255, 255, 0.75);
+            line-height: 1.9;
+            margin-bottom: 20px;
+            font-size: 0.95rem;
+        }
+
+        .glossary-image {
+            width: 100%;
+            max-width: 500px;
+            height: auto;
+            border-radius: 12px;
+            margin-top: 15px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(0, 217, 255, 0.2);
+            transition: box-shadow 0.3s;
+        }
+
+        .glossary-item:hover .glossary-image {
+            box-shadow: 0 10px 35px rgba(0, 217, 255, 0.3), 0 0 0 2px var(--accent-cyan);
+        }
+
+        .footer {
+            position: relative;
+            z-index: 2;
+            text-align: center;
+            padding: 60px 20px;
+            background: linear-gradient(180deg, transparent, rgba(0, 217, 255, 0.05));
+            border-top: 1px solid rgba(0, 217, 255, 0.2);
+        }
+
+        .team-credits {
+            font-size: 0.95rem;
+            color: rgba(255, 255, 255, 0.65);
+            max-width: 800px;
+            margin: 0 auto;
+            line-height: 1.9;
+        }
+
+        .team-credits strong { color: var(--accent-cyan); font-weight: 700; }
+
+        @media (max-width: 768px) {
+            .glossary-item { padding: 25px 20px; }
+            .glossary-item h3 { font-size: 1.1rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="page-header">
+        <h1>CIRCUITO EN SERIE Y PARALELO</h1>
+        <a href="index.html" class="btn-back">← Volver al Inicio</a>
+    </div>
+
+    <div class="content">
+        <div class="glossary-grid">
+
+            <div class="glossary-item">
+                <h3>Ejercicio 1</h3>
+                <h3>Elementos que aparecen</h3>
+                <h3>Batería de 9V</h3>
+                <p>Es la fuente de energía del circuito.
+                Está conectada mediante cables rojo (+) y negro (–).</p>
+                <img src="https://www.carrod.mx/cdn/shop/products/98_558deae4-fab3-43e6-9156-2e8d9f04e956_grande.png?v=1757520983" alt="Arduino UNO" class="glossary-image">
+                <h3>Protoboard</h3>
+                <p>Placa blanca con orificios para hacer conexiones sin soldar.
+                Tiene rieles laterales para alimentación (línea roja y azul).</p>
+                <img src="https://m.media-amazon.com/images/I/511MFMQolAL._AC_SX522_.jpg" alt="Arduino UNO" class="glossary-image">
+                <h3>LEDs</h3>
+                <p>Tres LEDs rojos encendidos
+                Están conectados en la parte superior del protoboard.
+                Emiten luz, lo que indica que el circuito está cerrado y funcionando.</p>
+                <img src="rojos.jpg" alt="Arduino UNO" class="glossary-image">
+                <h3>Resistencias</h3>
+                <p>Se observan resistencias conectadas en serie con los LEDs.
+                Sirven para limitar la corriente y evitar que los LEDs se quemen.
+                Cables jumper
+                Distribuyen la corriente desde la batería hacia el circuito.</p>
+                <img src="https://aelectronics.com.mx/2733-large_default/resistencia-th-1-4-watt-200-ohm.jpg" alt="Arduino UNO" class="glossary-image">
+                <h3>¿Qué tipo de conexión es?</h3>
+                <p>Por la forma en que están colocados los LEDs y las resistencias, parece que están conectados en paralelo con resistencias individuales, lo cual es correcto porque:
+                Cada LED recibe el mismo voltaje.
+                Cada LED tiene su propia resistencia para controlar la corriente.
+                Si uno se apaga, los demás siguen encendidos.</p>
+                <img src="ejeuno.jpeg" alt="Arduino UNO" class="glossary-image">
+                <img src="ejeunoo.jpeg" alt="Arduino UNO" class="glossary-image">
+                <h3>¿Qué demuestra esta práctica?</h3> 
+                <p>Este montaje sirve para aprender:
+                Uso correcto del protoboard.
+                Polaridad de los LEDs (ánodo y cátodo).
+                Importancia de las resistencias.
+                Diferencia entre conexión en serie y paralelo.
+                Cómo alimentar un circuito con una batería.</p>
+                <img src="https://i.pinimg.com/736x/5a/e1/9a/5ae19a4705e9083c1ed5efcb99ceaf94.jpg" alt="Arduino UNO" class="glossary-image">
+                <h3>🔴 Punto importante</h3> 
+                <p>En esta imagen el circuito está mejor armado que el anterior porque sí incluye resistencias, lo que protege los LEDs y hace que el montaje sea seguro.</p>
+                <img src="xddd.jpeg" alt="Arduino UNO" class="glossary-image">
+            </div>
+
+            <div class="glossary-item">
+                <h3>Ejercicio 2</h3>
+                <h3>Elementos que aparecen</h3>
+                <h3>Batería de 9V</h3>
+                <p>Es una batería rectangular (tipo carbón).
+                Proporciona la energía al circuito.</p>
+                <img src="https://www.carrod.mx/cdn/shop/products/98_558deae4-fab3-43e6-9156-2e8d9f04e956_grande.png?v=1757520983" alt="Arduino UNO" class="glossary-image">
+                <h3>Cables (rojo y negro)</h3>
+                <p>Rojo: normalmente es el polo positivo (+).
+                Negro: normalmente es el polo negativo (–).</p>
+                <img src="https://m.media-amazon.com/images/I/418KXdS-L3L._SS200_.jpg" alt="Arduino UNO" class="glossary-image">
+                <h3>Protoboard</h3>
+                <p>Placa blanca con muchos orificios.
+                Sirve para conectar componentes sin necesidad de soldar.</p>
+                <img src="https://m.media-amazon.com/images/I/511MFMQolAL._AC_SX522_.jpg" alt="Arduino UNO" class="glossary-image">
+                <h3>LEDs</h3>
+                <p>Tres LEDs rojos encendidos
+                Están conectados en la parte superior del protoboard.
+                Emiten luz, lo que indica que el circuito está cerrado y funcionando.</p>
+                <img src="rojos.jpg" alt="Arduino UNO" class="glossary-image">
+                <h3>Resistencias</h3>
+                <p>Se observan resistencias conectadas en serie con los LEDs.
+                Sirven para limitar la corriente y evitar que los LEDs se quemen.
+                Cables jumper
+                Distribuyen la corriente desde la batería hacia el circuito.</p>
+                <img src="https://aelectronics.com.mx/2733-large_default/resistencia-th-1-4-watt-200-ohm.jpg" alt="Arduino UNO" class="glossary-image">
+                <h3>¿Qué está pasando en el circuito?</h3>
+                <p>Los LEDs están conectados directamente a la pila de 9V, ya que están encendidos.</p>
+                <img src="ejed.jpeg" alt="Arduino UNO" class="glossary-image">
+                <img src="ejedo.jpeg" alt="Arduino UNO" class="glossary-image">
+                <h3>🔴 Importante</h3> 
+                <p>No se observa ninguna resistencia en serie.
+                Los LEDs necesitan una resistencia (por ejemplo 220Ω o 330Ω) para limitar la corriente.
+                Sin resistencia, pueden:
+                Quemarse
+                Reducir su vida útil
+                Consumir demasiada corriente</p>
+                <img src="https://i.pinimg.com/736x/6b/5b/3a/6b5b3a1758444f4d7692b4c015ae7440.jpg" alt="Arduino UNO" class="glossary-image">
+                <h3>Tipo de conexión</h3> 
+                <p>Por la posición, parece que los LEDs están conectados en paralelo, porque:
+                Todos están encendidos con la misma intensidad.
+                Cada uno probablemente recibe el mismo voltaje de la pila.
+                Si estuvieran en serie:
+                Se verían menos brillantes.
+                El voltaje se repartiría entre ellos.</p>
+                <img src="ejedos.jpeg" alt="Arduino UNO" class="glossary-image">
+                <h3>¿Qué aprendizaje muestra la imagen?</h3> 
+                <p>Este montaje sirve para:
+                Practicar conexiones básicas.
+                Entender polaridad (ánodo y cátodo).
+                Aprender cómo distribuir energía en un protoboard.
+                Diferenciar conexiones en serie y paralelo.</p>
+                <img src="lol.jpeg" alt="Arduino UNO" class="glossary-image">
+            </div>
+        </div>
+    </div>
+
+    <div class="content" style="padding-top: 0;">
+        <div class="glossary-item" style="margin-top: 0; border-left-color: var(--accent-cyan); text-align: center;">
+            <h3>🎬 Video de la Práctica</h3>
+            <p>Demostración en video del circuito en serie y paralelo con LEDs.</p>
+            <video
+                controls
+                style="
+                    width: 100%;
+                    max-width: 800px;
+                    border-radius: 12px;
+                    margin: 15px auto 0 auto;
+                    box-shadow: 0 5px 30px rgba(0,255,170,0.25), 0 0 0 2px rgba(0,255,170,0.3);
+                    display: block;
+                "
+            >
+                <source src="LEDSS.mp4" type="video/mp4">
+                Tu navegador no soporta la reproducción de video.
+            </video>
+        </div>
+    </div>
+
+    <footer class="footer">
+        <div class="team-credits">
+            <strong>Realizado por:</strong><br>
+            PEREZ HERNANDEZ LAURA NAOMI • FLORES FLORES MARCO ANTONIO<br>
+            Rodríguez Espinosa Génesis Ayde • González Espinosa Noé de Jesús
+        </div>
+    </footer>
+
+</body>
+</html>
