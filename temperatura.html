@@ -1,0 +1,1117 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sensor de Temperatura + Display – Resumen</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-black: #0a0a0a;
+            --accent-cyan:   #00d9ff;
+            --accent-orange: #ff8c00;
+            --accent-red:    #ff3b3b;
+            --accent-yellow: #ffe600;
+            --accent-green:  #39ff14;
+            --accent-blue:   #4488ff;
+            --accent-purple: #a855f7;
+            --text-white:    #ffffff;
+            --card-bg:       #1a1a1a;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Space Mono', monospace;
+            background: var(--primary-black);
+            color: var(--text-white);
+            overflow-x: hidden;
+            min-height: 100vh;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background:
+                repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(255,140,0,0.025) 2px, rgba(255,140,0,0.025) 4px),
+                repeating-linear-gradient(90deg, transparent, transparent 2px, rgba(255,140,0,0.025) 2px, rgba(255,140,0,0.025) 4px);
+            pointer-events: none;
+            animation: gridMove 20s linear infinite;
+            z-index: 0;
+        }
+
+        @keyframes gridMove {
+            0%   { transform: translate(0, 0); }
+            100% { transform: translate(50px, 50px); }
+        }
+
+        /* ── HEADER ── */
+        .page-header {
+            position: relative;
+            z-index: 2;
+            padding: 60px 20px 40px;
+            text-align: center;
+            background: linear-gradient(135deg, rgba(10,10,10,0.95), rgba(255,80,0,0.08)),
+                        url('https://images.unsplash.com/photo-1581092921461-39b9d08a9b21?w=1920&q=80') center/cover;
+            border-bottom: 2px solid rgba(255,140,0,0.35);
+        }
+
+        .page-header h1 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: clamp(1.4rem, 4vw, 2.6rem);
+            font-weight: 900;
+            letter-spacing: 0.08em;
+            animation: tempGlow 3s ease-in-out infinite;
+            margin-bottom: 10px;
+        }
+
+        @keyframes tempGlow {
+            0%   { color: var(--accent-blue);   text-shadow: 0 0 20px var(--accent-blue),   0 0 60px rgba(68,136,255,0.4); }
+            50%  { color: var(--accent-orange);  text-shadow: 0 0 20px var(--accent-orange),  0 0 60px rgba(255,140,0,0.4); }
+            100% { color: var(--accent-blue);   text-shadow: 0 0 20px var(--accent-blue),   0 0 60px rgba(68,136,255,0.4); }
+        }
+
+        .page-header p {
+            color: rgba(255,255,255,0.6);
+            font-size: 0.9rem;
+            margin-bottom: 20px;
+        }
+
+        .page-header::after {
+            content: '';
+            display: block;
+            width: 140px;
+            height: 4px;
+            background: linear-gradient(90deg, var(--accent-blue), var(--accent-orange), var(--accent-red));
+            margin: 0 auto;
+        }
+
+        .btn-back {
+            display: inline-block;
+            margin-top: 25px;
+            padding: 12px 28px;
+            border: 2px solid var(--accent-orange);
+            color: var(--text-white);
+            font-family: 'Space Mono', monospace;
+            font-size: 0.85rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            text-decoration: none;
+            border-radius: 8px;
+            transition: all 0.3s;
+        }
+        .btn-back:hover {
+            background: var(--accent-orange);
+            color: var(--primary-black);
+            box-shadow: 0 0 20px rgba(255,140,0,0.4);
+        }
+
+        /* ── LAYOUT ── */
+        .content {
+            position: relative;
+            z-index: 2;
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 60px 20px;
+            display: grid;
+            gap: 50px;
+        }
+
+        /* ── CARDS ── */
+        .circuit-card {
+            background: var(--card-bg);
+            border: 2px solid rgba(0,217,255,0.2);
+            border-left: 5px solid var(--accent-cyan);
+            border-radius: 20px;
+            padding: 40px;
+            animation: fadeInUp 0.8s ease-out both;
+        }
+        .circuit-card.orange {
+            border-left-color: var(--accent-orange);
+            border-color: rgba(255,140,0,0.2);
+            animation-delay: 0.2s;
+        }
+        .circuit-card.purple {
+            border-left-color: var(--accent-purple);
+            border-color: rgba(168,85,247,0.2);
+            animation-delay: 0.4s;
+        }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(40px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ── SECTION HEADER ── */
+        .circuit-header {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+        .circuit-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.6rem;
+            font-weight: 900;
+            color: var(--accent-cyan);
+            text-shadow: 0 0 20px var(--accent-cyan);
+        }
+        .circuit-title.orange { color: var(--accent-orange); text-shadow: 0 0 20px var(--accent-orange); }
+        .circuit-title.purple { color: var(--accent-purple); text-shadow: 0 0 20px var(--accent-purple); }
+
+        .badge {
+            padding: 6px 14px;
+            border: 1px solid rgba(0,217,255,0.4);
+            background: rgba(0,217,255,0.1);
+            color: var(--accent-cyan);
+            border-radius: 30px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+        }
+        .badge.orange { border-color: rgba(255,140,0,0.4); background: rgba(255,140,0,0.1); color: var(--accent-orange); }
+        .badge.purple { border-color: rgba(168,85,247,0.4); background: rgba(168,85,247,0.1); color: var(--accent-purple); }
+
+        /* ── DIAGRAM CONTAINER ── */
+        .diagram-container {
+            background: #0f0f0f;
+            border: 1px solid rgba(0,217,255,0.15);
+            border-radius: 14px;
+            padding: 30px;
+            margin-bottom: 30px;
+            display: flex;
+            justify-content: center;
+            overflow: hidden;
+        }
+        .diagram-container.orange { border-color: rgba(255,140,0,0.18); }
+        .diagram-container.purple { border-color: rgba(168,85,247,0.15); }
+        .diagram-container svg { max-width: 100%; height: auto; }
+
+        .section-label {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.85rem;
+            color: rgba(255,255,255,0.4);
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            margin-bottom: 16px;
+        }
+
+        /* ── COMPONENTS GRID ── */
+        .components-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 16px;
+            margin-bottom: 30px;
+        }
+        .component-card {
+            background: #111;
+            border: 1px solid rgba(0,217,255,0.12);
+            border-radius: 12px;
+            padding: 18px;
+            display: flex;
+            gap: 14px;
+            align-items: flex-start;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        .component-card:hover { transform: translateY(-4px); box-shadow: 0 8px 30px rgba(0,217,255,0.15); }
+        .component-card.orange { border-color: rgba(255,140,0,0.15); }
+        .component-card.orange:hover { box-shadow: 0 8px 30px rgba(255,140,0,0.18); }
+
+        .component-icon {
+            width: 42px; height: 42px;
+            border-radius: 10px;
+            background: rgba(0,217,255,0.1);
+            border: 1px solid rgba(0,217,255,0.3);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.3rem; flex-shrink: 0;
+        }
+        .component-icon.orange { background: rgba(255,140,0,0.1); border-color: rgba(255,140,0,0.3); }
+
+        .component-name {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.75rem;
+            color: var(--accent-cyan);
+            margin-bottom: 5px;
+        }
+        .component-name.orange { color: var(--accent-orange); }
+
+        .component-desc {
+            font-size: 0.78rem;
+            color: rgba(255,255,255,0.6);
+            line-height: 1.6;
+        }
+
+        /* ── EXPLANATION BOX ── */
+        .explanation-box {
+            background: linear-gradient(135deg, rgba(0,217,255,0.05), rgba(123,44,191,0.05));
+            border: 1px solid rgba(0,217,255,0.2);
+            border-radius: 14px;
+            padding: 24px;
+            margin-bottom: 20px;
+        }
+        .explanation-box.orange {
+            background: linear-gradient(135deg, rgba(255,140,0,0.05), rgba(255,59,59,0.05));
+            border-color: rgba(255,140,0,0.25);
+        }
+        .explanation-box h4 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.9rem;
+            color: var(--accent-cyan);
+            margin-bottom: 12px;
+        }
+        .explanation-box.orange h4 { color: var(--accent-orange); }
+        .explanation-box p {
+            color: rgba(255,255,255,0.75);
+            font-size: 0.88rem;
+            line-height: 1.9;
+        }
+
+        /* ── ALERT BOX ── */
+        .alert-box {
+            background: rgba(255,230,0,0.06);
+            border: 1px solid rgba(255,230,0,0.3);
+            border-left: 4px solid var(--accent-yellow);
+            border-radius: 12px;
+            padding: 18px 20px;
+            display: flex;
+            gap: 12px;
+            align-items: flex-start;
+        }
+        .alert-box .alert-icon { font-size: 1.3rem; flex-shrink: 0; margin-top: 2px; }
+        .alert-box p { color: rgba(255,255,255,0.75); font-size: 0.85rem; line-height: 1.8; }
+        .alert-box strong { color: var(--accent-yellow); }
+
+        /* ── ANIMATED DASH ── */
+        .flow-path { stroke-dasharray: 8 6; animation: dash 1.2s linear infinite; }
+        @keyframes dash { to { stroke-dashoffset: -28; } }
+
+        /* ── FORMULA BOX ── */
+        .formula-box {
+            background: #0f0f0f;
+            border: 1px solid rgba(255,140,0,0.3);
+            border-radius: 12px;
+            padding: 20px 28px;
+            text-align: center;
+            margin: 20px 0;
+        }
+        .formula-text {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.05rem;
+            letter-spacing: 0.1em;
+            animation: tempGlow 3s ease-in-out infinite;
+        }
+        .formula-desc {
+            font-size: 0.78rem;
+            color: rgba(255,255,255,0.45);
+            margin-top: 8px;
+        }
+
+        /* ── DATA TABLE ── */
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.87rem;
+            font-family: 'Space Mono', monospace;
+        }
+        .data-table thead tr { border-bottom: 2px solid rgba(255,140,0,0.3); }
+        .data-table th {
+            padding: 14px 12px;
+            text-align: left;
+            color: rgba(255,255,255,0.45);
+            font-weight: 400;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            font-size: 0.75rem;
+        }
+        .data-table th.cyan   { color: var(--accent-cyan); }
+        .data-table th.orange { color: var(--accent-orange); }
+        .data-table th.green  { color: var(--accent-green); }
+        .data-table th.purple { color: var(--accent-purple); }
+        .data-table td {
+            padding: 14px 12px;
+            color: rgba(255,255,255,0.8);
+            border-bottom: 1px solid rgba(255,255,255,0.06);
+        }
+
+        /* ── TIMELINE ── */
+        .timeline { display: grid; gap: 16px; margin-bottom: 24px; }
+        .timeline-item { display: flex; gap: 16px; align-items: flex-start; }
+        .timeline-dot {
+            width: 36px; height: 36px;
+            border-radius: 50%;
+            border: 2px solid var(--accent-cyan);
+            display: flex; align-items: center; justify-content: center;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.7rem;
+            color: var(--accent-cyan);
+            flex-shrink: 0;
+            background: rgba(0,217,255,0.07);
+        }
+        .timeline-dot.o { border-color: var(--accent-orange); color: var(--accent-orange); background: rgba(255,140,0,0.07); }
+        .timeline-dot.g { border-color: var(--accent-green);  color: var(--accent-green);  background: rgba(57,255,20,0.07); }
+        .timeline-dot.r { border-color: var(--accent-red);    color: var(--accent-red);    background: rgba(255,59,59,0.07); }
+        .timeline-text { font-size: 0.85rem; color: rgba(255,255,255,0.75); line-height: 1.7; padding-top: 6px; }
+        .timeline-text strong { color: #fff; }
+
+        /* ── TEMP SCALE ── */
+        .temp-scale-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+        .temp-scale-card {
+            border-radius: 12px;
+            padding: 16px;
+            text-align: center;
+            border: 1px solid rgba(255,255,255,0.08);
+            transition: transform 0.3s;
+        }
+        .temp-scale-card:hover { transform: translateY(-4px); }
+        .temp-scale-swatch {
+            width: 48px; height: 48px;
+            border-radius: 50%;
+            margin: 0 auto 10px;
+        }
+        .temp-scale-label {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.68rem;
+            color: rgba(255,255,255,0.8);
+            margin-bottom: 4px;
+        }
+        .temp-scale-value {
+            font-size: 0.7rem;
+            color: rgba(255,255,255,0.4);
+        }
+
+        /* ── FOOTER ── */
+        .footer {
+            position: relative;
+            z-index: 2;
+            text-align: center;
+            padding: 60px 20px;
+            border-top: 1px solid rgba(255,140,0,0.2);
+        }
+        .team-credits {
+            font-size: 0.9rem;
+            color: rgba(255,255,255,0.55);
+            line-height: 1.9;
+        }
+        .team-credits strong { color: var(--accent-orange); }
+
+        @media (max-width: 600px) {
+            .circuit-card { padding: 24px 16px; }
+            .components-grid { grid-template-columns: 1fr 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════ HEADER ═══════════════════════════════════════ -->
+<div class="page-header">
+    <h1>SENSOR DE TEMPERATURA + DISPLAY</h1>
+    <p>Resumen del video · Funcionamiento y lectura de temperatura en pantalla LCD</p>
+    <a href="diagramas.html" class="btn-back">← Volver a Diagramas</a>
+</div>
+
+<div class="content">
+
+    <!-- ══════════════════════════════════════
+         SECCIÓN 1 – RESUMEN DEL VIDEO
+    ═══════════════════════════════════════ -->
+    <div class="circuit-card">
+        <div class="circuit-header">
+            <span class="circuit-title">RESUMEN DEL VIDEO</span>
+            <span class="badge">Circuito en acción</span>
+        </div>
+
+        <!-- SVG: Representación del circuito sensor + display -->
+        <div class="diagram-container">
+            <svg viewBox="0 0 700 280" width="660" xmlns="http://www.w3.org/2000/svg">
+                <defs>
+                    <filter id="glow-temp">
+                        <feGaussianBlur stdDeviation="5" result="blur"/>
+                        <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+                    </filter>
+                    <radialGradient id="sensorGlow" cx="50%" cy="50%" r="50%">
+                        <stop offset="0%" stop-color="#ff8c00" stop-opacity="0.6"/>
+                        <stop offset="100%" stop-color="#ff8c00" stop-opacity="0"/>
+                    </radialGradient>
+                </defs>
+
+                <!-- Protoboard base -->
+                <rect x="40" y="80" width="620" height="140" rx="8" fill="#1a1a1a" stroke="rgba(255,255,255,0.1)" stroke-width="1.5"/>
+                <rect x="40" y="80" width="620" height="140" rx="8" fill="none" stroke="rgba(255,140,0,0.25)" stroke-width="1.5"
+                      stroke-dasharray="6 4" class="flow-path" opacity="0.35"/>
+                <line x1="60" y1="98"  x2="640" y2="98"  stroke="rgba(57,255,20,0.1)"  stroke-width="1"/>
+                <line x1="60" y1="202" x2="640" y2="202" stroke="rgba(255,59,59,0.1)" stroke-width="1"/>
+
+                <!-- Sensor DHT11 / LM35 -->
+                <circle cx="150" cy="150" r="28" fill="url(#sensorGlow)" opacity="0.8"/>
+                <rect x="128" y="128" width="44" height="44" rx="8" fill="#111" stroke="rgba(255,140,0,0.7)" stroke-width="2" filter="url(#glow-temp)"/>
+                <text x="150" y="148" text-anchor="middle" fill="rgba(255,140,0,0.9)" font-size="8" font-family="Space Mono" font-weight="700">LM35</text>
+                <text x="150" y="161" text-anchor="middle" fill="rgba(255,255,255,0.5)" font-size="7" font-family="Space Mono">SENSOR</text>
+                <text x="150" y="197" text-anchor="middle" fill="rgba(255,140,0,0.6)" font-size="10" font-family="Space Mono">Temperatura</text>
+
+                <!-- Pines del sensor -->
+                <line x1="133" y1="172" x2="133" y2="195" stroke="#ff3b3b" stroke-width="2.5"/>
+                <text x="133" y="208" text-anchor="middle" fill="#ff3b3b" font-size="8" font-family="Space Mono">VCC</text>
+                <line x1="150" y1="172" x2="150" y2="195" stroke="rgba(255,140,0,0.9)" stroke-width="2.5"/>
+                <text x="150" y="208" text-anchor="middle" fill="rgba(255,140,0,0.9)" font-size="8" font-family="Space Mono">OUT</text>
+                <line x1="167" y1="172" x2="167" y2="195" stroke="rgba(255,255,255,0.5)" stroke-width="2.5"/>
+                <text x="167" y="208" text-anchor="middle" fill="rgba(255,255,255,0.5)" font-size="8" font-family="Space Mono">GND</text>
+
+                <!-- Cable de señal hacia Arduino -->
+                <path d="M 150 128 Q 150 70 290 70" fill="none" stroke="rgba(255,140,0,0.7)" stroke-width="2.5" stroke-linecap="round" stroke-dasharray="5 4" class="flow-path"/>
+                <text x="220" y="60" text-anchor="middle" fill="rgba(255,140,0,0.6)" font-size="9" font-family="Space Mono">señal analógica</text>
+
+                <!-- Arduino UNO (simplificado) -->
+                <rect x="280" y="100" width="120" height="80" rx="8" fill="#111" stroke="rgba(0,217,255,0.5)" stroke-width="2"/>
+                <text x="340" y="137" text-anchor="middle" fill="rgba(0,217,255,0.9)" font-size="9" font-family="Space Mono" font-weight="700">ARDUINO</text>
+                <text x="340" y="152" text-anchor="middle" fill="rgba(0,217,255,0.6)" font-size="8" font-family="Space Mono">UNO</text>
+                <circle cx="310" cy="115" r="5" fill="rgba(0,217,255,0.2)" stroke="rgba(0,217,255,0.5)" stroke-width="1"/>
+                <circle cx="370" cy="115" r="5" fill="rgba(0,217,255,0.2)" stroke="rgba(0,217,255,0.5)" stroke-width="1"/>
+
+                <!-- Cable datos hacia Display -->
+                <path d="M 400 140 Q 450 140 470 140" fill="none" stroke="rgba(57,255,20,0.7)" stroke-width="2.5" stroke-linecap="round" stroke-dasharray="4 3" class="flow-path"/>
+                <text x="435" y="130" text-anchor="middle" fill="rgba(57,255,20,0.5)" font-size="9" font-family="Space Mono">I2C / datos</text>
+
+                <!-- Display LCD 16x2 -->
+                <rect x="470" y="108" width="140" height="70" rx="8" fill="#0a1a0a" stroke="rgba(57,255,20,0.6)" stroke-width="2" filter="url(#glow-temp)"/>
+                <!-- Texto en pantalla LCD -->
+                <rect x="480" y="118" width="120" height="22" rx="3" fill="rgba(0,200,50,0.12)" stroke="rgba(57,255,20,0.2)" stroke-width="1"/>
+                <text x="540" y="133" text-anchor="middle" fill="rgba(57,255,20,0.9)" font-size="9" font-family="Space Mono">Temp: 26.5°C</text>
+                <rect x="480" y="145" width="120" height="22" rx="3" fill="rgba(0,200,50,0.07)" stroke="rgba(57,255,20,0.15)" stroke-width="1"/>
+                <text x="540" y="160" text-anchor="middle" fill="rgba(57,255,20,0.55)" font-size="9" font-family="Space Mono">Hum:  65 %</text>
+                <text x="540" y="195" text-anchor="middle" fill="rgba(57,255,20,0.6)" font-size="10" font-family="Space Mono">LCD 16×2</text>
+
+                <!-- Batería / VCC -->
+                <rect x="50" y="108" width="50" height="36" rx="6" fill="#111" stroke="rgba(255,59,59,0.5)" stroke-width="1.5"/>
+                <text x="75" y="123" text-anchor="middle" fill="rgba(255,59,59,0.8)" font-size="8" font-family="Space Mono" font-weight="700">5V</text>
+                <text x="75" y="137" text-anchor="middle" fill="rgba(255,255,255,0.3)" font-size="7" font-family="Space Mono">USB/BAT</text>
+                <line x1="100" y1="126" x2="128" y2="140" stroke="rgba(255,59,59,0.5)" stroke-width="1.5" stroke-dasharray="3 2"/>
+            </svg>
+        </div>
+
+        <!-- Descripción del video -->
+        <p class="section-label">Lo que muestra el video</p>
+
+        <div class="timeline">
+            <div class="timeline-item">
+                <div class="timeline-dot">00s</div>
+                <div class="timeline-text"><strong>Vista general del circuito:</strong> se observa la protoboard con el sensor de temperatura (LM35 o DHT11) montado, conectado mediante cables de colores al Arduino UNO. El display LCD de 16×2 está fijo sobre la protoboard mostrando datos en pantalla verde.</div>
+            </div>
+            <div class="timeline-item">
+                <div class="timeline-dot o">05s</div>
+                <div class="timeline-text"><strong>Encendido y lectura en tiempo real:</strong> al energizar el circuito, el display enciende y muestra la temperatura ambiente capturada por el sensor en grados Celsius, actualizándose de forma continua.</div>
+            </div>
+            <div class="timeline-item">
+                <div class="timeline-dot g">10s</div>
+                <div class="timeline-text"><strong>Interacción con el sensor:</strong> se acerca la mano o una fuente de calor al sensor, y se puede observar cómo el valor en el display cambia en respuesta al incremento de temperatura, demostrando que el sensor funciona correctamente.</div>
+            </div>
+            <div class="timeline-item">
+                <div class="timeline-dot r">15s</div>
+                <div class="timeline-text"><strong>Vista del cableado y conexiones:</strong> encuadre general de la placa Arduino, los cables de datos (SDA/SCL o señal analógica), la alimentación de 5V y los pines del display, mostrando el circuito terminado y operativo.</div>
+            </div>
+        </div>
+
+        <div class="explanation-box">
+            <h4>🎬 Conclusión del video</h4>
+            <p>
+                El video muestra el <strong>montaje práctico en protoboard</strong> de un circuito que lee temperatura con un sensor (LM35 o DHT11) y la despliega en tiempo real sobre un <strong>display LCD 16×2</strong>. El momento clave es ver el valor numérico de temperatura actualizarse en pantalla al acercar calor al sensor, confirmando el correcto funcionamiento del sistema de lectura y visualización.
+            </p>
+        </div>
+
+        <!-- Video embebido -->
+        <p class="section-label" style="margin-top:30px;">Video del proceso</p>
+        <div style="background:#0f0f0f; border:1px solid rgba(255,140,0,0.18); border-radius:14px; overflow:hidden; margin-top:10px;">
+            <video controls style="width:100%; display:block; max-height:460px; background:#000;">
+                <source src="temperatura.mp4" type="video/mp4">
+                Tu navegador no soporta el elemento de video.
+            </video>
+        </div>
+    </div>
+
+
+    <!-- ══════════════════════════════════════
+         SECCIÓN 2 – ¿QUÉ ES UN SENSOR DE TEMPERATURA?
+    ═══════════════════════════════════════ -->
+    <div class="circuit-card orange">
+        <div class="circuit-header">
+            <span class="circuit-title orange">SENSOR DE TEMPERATURA</span>
+            <span class="badge orange">Componente</span>
+        </div>
+
+        <!-- SVG: Estructura interna LM35 + pinout -->
+        <div class="diagram-container orange">
+            <svg viewBox="0 0 700 300" width="660" xmlns="http://www.w3.org/2000/svg">
+                <defs>
+                    <filter id="glow-lm35">
+                        <feGaussianBlur stdDeviation="6" result="blur"/>
+                        <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+                    </filter>
+                </defs>
+
+                <!-- Cuerpo del LM35 -->
+                <rect x="270" y="80" width="160" height="110" rx="10" fill="#111" stroke="rgba(255,140,0,0.6)" stroke-width="2" filter="url(#glow-lm35)"/>
+                <text x="350" y="125" text-anchor="middle" fill="rgba(255,140,0,0.9)" font-size="13" font-family="Space Mono" font-weight="700">LM35</text>
+                <text x="350" y="145" text-anchor="middle" fill="rgba(255,255,255,0.4)" font-size="9" font-family="Space Mono">SENSOR TEMP</text>
+                <text x="350" y="162" text-anchor="middle" fill="rgba(255,140,0,0.5)" font-size="8" font-family="Space Mono">10 mV / °C</text>
+
+                <!-- Pines salida -->
+                <line x1="290" y1="190" x2="290" y2="240" stroke="#ff3b3b" stroke-width="3"/>
+                <text x="290" y="258" text-anchor="middle" fill="#ff3b3b" font-size="10" font-family="Space Mono">VCC</text>
+                <line x1="350" y1="190" x2="350" y2="240" stroke="rgba(255,140,0,0.9)" stroke-width="3"/>
+                <text x="350" y="258" text-anchor="middle" fill="rgba(255,140,0,0.9)" font-size="10" font-family="Space Mono">VOUT</text>
+                <line x1="410" y1="190" x2="410" y2="240" stroke="rgba(255,255,255,0.5)" stroke-width="3"/>
+                <text x="410" y="258" text-anchor="middle" fill="rgba(255,255,255,0.5)" font-size="10" font-family="Space Mono">GND</text>
+
+                <!-- Explicación interna -->
+                <text x="350" y="62" text-anchor="middle" fill="rgba(255,255,255,0.4)" font-size="11" font-family="Space Mono">Transductor de temperatura lineal</text>
+
+                <!-- Flecha de calor entrando -->
+                <line x1="120" y1="100" x2="255" y2="125" stroke="rgba(255,59,59,0.5)" stroke-width="2" stroke-dasharray="4 3"/>
+                <polygon points="255,125 242,117 244,128" fill="rgba(255,59,59,0.5)"/>
+                <text x="100" y="94" text-anchor="middle" fill="rgba(255,59,59,0.6)" font-size="10" font-family="Space Mono">Calor</text>
+                <text x="100" y="108" text-anchor="middle" fill="rgba(255,59,59,0.4)" font-size="9" font-family="Space Mono">(°C)</text>
+
+                <!-- Flecha de voltaje saliendo -->
+                <line x1="430" y1="135" x2="510" y2="135" stroke="rgba(255,140,0,0.5)" stroke-width="2" stroke-dasharray="5 3" class="flow-path"/>
+                <polygon points="510,135 498,129 498,141" fill="rgba(255,140,0,0.5)"/>
+                <text x="545" y="128" fill="rgba(255,140,0,0.55)" font-size="10" font-family="Space Mono">Voltaje</text>
+                <text x="545" y="142" fill="rgba(255,140,0,0.55)" font-size="10" font-family="Space Mono">analógico</text>
+
+                <!-- Señal interna -->
+                <path d="M 190 150 Q 210 140 230 150 Q 250 160 270 150" fill="none" stroke="rgba(255,230,0,0.3)" stroke-width="1.5" stroke-dasharray="3 2"/>
+                <text x="155" y="154" fill="rgba(255,230,0,0.4)" font-size="8" font-family="Space Mono">señal</text>
+            </svg>
+        </div>
+
+        <p class="section-label">Definición</p>
+        <div class="explanation-box orange">
+            <h4>🌡️ ¿Qué es un sensor de temperatura?</h4>
+            <p>
+                Un <strong>sensor de temperatura</strong> es un componente electrónico que convierte la temperatura del entorno en una señal eléctrica medible. El <strong>LM35</strong> es un sensor analógico de precisión que entrega <strong>10 mV por cada grado Celsius</strong>, ideal para conectarse al pin analógico de un Arduino sin necesidad de conversión adicional. El <strong>DHT11</strong> es una variante digital que además mide humedad relativa y usa un protocolo de 1 hilo.<br><br>
+                Ambos trabajan a <strong>5V</strong>, son fáciles de conectar en protoboard y ofrecen lecturas estables dentro de un rango de temperatura ambiente típico de <strong>0°C a 100°C</strong>.
+            </p>
+        </div>
+
+        <p class="section-label">Componentes del circuito</p>
+        <div class="components-grid">
+            <div class="component-card orange">
+                <div class="component-icon orange">🌡️</div>
+                <div>
+                    <div class="component-name orange">Sensor LM35 / DHT11</div>
+                    <div class="component-desc">Transductor de temperatura. LM35: salida analógica 10 mV/°C. DHT11: salida digital 1 hilo.</div>
+                </div>
+            </div>
+            <div class="component-card orange">
+                <div class="component-icon orange">🖥️</div>
+                <div>
+                    <div class="component-name orange">Display LCD 16×2</div>
+                    <div class="component-desc">Pantalla de cristal líquido con retroiluminación verde. Muestra 2 líneas de 16 caracteres cada una.</div>
+                </div>
+            </div>
+            <div class="component-card orange">
+                <div class="component-icon orange">🔷</div>
+                <div>
+                    <div class="component-name orange">Módulo I2C (PCF8574)</div>
+                    <div class="component-desc">Adaptador I2C para el LCD. Reduce los pines necesarios de 16 a solo 4 (VCC, GND, SDA, SCL).</div>
+                </div>
+            </div>
+            <div class="component-card orange">
+                <div class="component-icon orange">⚡</div>
+                <div>
+                    <div class="component-name orange">Arduino UNO</div>
+                    <div class="component-desc">Microcontrolador que lee el sensor, convierte la señal y envía los datos al display para visualizarlos.</div>
+                </div>
+            </div>
+            <div class="component-card orange">
+                <div class="component-icon orange">🔌</div>
+                <div>
+                    <div class="component-name orange">Protoboard + Cables</div>
+                    <div class="component-desc">Placa de prototipado sin soldadura para realizar las conexiones temporales del circuito.</div>
+                </div>
+            </div>
+            <div class="component-card orange">
+                <div class="component-icon orange">🔋</div>
+                <div>
+                    <div class="component-name orange">Fuente 5V (USB)</div>
+                    <div class="component-desc">Alimentación del sistema. El Arduino provee 5V al sensor y al display desde su pin de potencia.</div>
+                </div>
+            </div>
+        </div>
+
+        <p class="section-label">Pinout y conexiones</p>
+        <div style="overflow-x:auto; margin-bottom:30px;">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Pin</th>
+                        <th class="orange">Sensor LM35</th>
+                        <th class="cyan">Display LCD (I2C)</th>
+                        <th class="green">Arduino UNO</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Alimentación (+)</td>
+                        <td>Pin 1 → 5V</td>
+                        <td>VCC → 5V</td>
+                        <td>Pin 5V</td>
+                    </tr>
+                    <tr>
+                        <td>Tierra (GND)</td>
+                        <td>Pin 3 → GND</td>
+                        <td>GND → GND</td>
+                        <td>Pin GND</td>
+                    </tr>
+                    <tr>
+                        <td>Señal / Datos</td>
+                        <td>Pin 2 (VOUT) → A0</td>
+                        <td>SDA → A4 · SCL → A5</td>
+                        <td>A0, A4, A5</td>
+                    </tr>
+                    <tr>
+                        <td>Contraste (pot.)</td>
+                        <td>—</td>
+                        <td>Ajustado en módulo I2C</td>
+                        <td>—</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="formula-box">
+            <div class="formula-text">T (°C) = (V_out × 5000 / 1023) / 10</div>
+            <div class="formula-desc">Conversión de lectura analógica Arduino (0–1023) → temperatura en °C para LM35 · 5V de referencia</div>
+        </div>
+
+        <div class="alert-box">
+            <span class="alert-icon">⚠️</span>
+            <p><strong>Importante:</strong> Al usar el módulo I2C con el LCD, verifica la <strong>dirección I2C</strong> del módulo (normalmente 0x27 o 0x3F). Si el display no muestra texto, prueba ajustando el <strong>potenciómetro de contraste</strong> en el módulo PCF8574 con un desarmador pequeño.</p>
+        </div>
+    </div>
+
+
+    <!-- ══════════════════════════════════════
+         SECCIÓN 3 – DISPLAY LCD Y APLICACIONES
+    ═══════════════════════════════════════ -->
+    <div class="circuit-card purple">
+        <div class="circuit-header">
+            <span class="circuit-title purple">DISPLAY LCD 16×2</span>
+            <span class="badge purple">Salida visual</span>
+        </div>
+
+        <div class="explanation-box" style="background:linear-gradient(135deg,rgba(168,85,247,0.05),rgba(255,140,0,0.05)); border-color:rgba(168,85,247,0.2);">
+            <h4 style="color:#a855f7;">🖥️ ¿Cómo funciona el display LCD?</h4>
+            <p>
+                El <strong>display LCD 16×2</strong> (Liquid Crystal Display) es una pantalla alfanumérica capaz de mostrar <strong>2 líneas de 16 caracteres</strong> cada una. Utiliza un controlador <strong>HD44780</strong> internamente y se comunica con Arduino a través de su librería nativa <code style="color:#a855f7;">LiquidCrystal</code> (modo paralelo) o mediante el módulo <strong>I2C PCF8574</strong> que reduce los pines de conexión a solo 4.<br><br>
+                La retroiluminación verde-azulada permite ver los datos en condiciones de baja luz. Con Arduino, basta enviar cadenas de texto con <code style="color:#a855f7;">lcd.print()</code> para visualizar valores en tiempo real.
+            </p>
+        </div>
+
+        <!-- Temperatura por rangos -->
+        <p class="section-label">Rangos de temperatura y color sugerido en LED indicador</p>
+        <div class="temp-scale-grid">
+            <div class="temp-scale-card" style="background:rgba(68,136,255,0.08);">
+                <div class="temp-scale-swatch" style="background:#4488ff; box-shadow:0 0 12px rgba(68,136,255,0.6);"></div>
+                <div class="temp-scale-label">FRÍO</div>
+                <div class="temp-scale-value">0°C – 15°C</div>
+            </div>
+            <div class="temp-scale-card" style="background:rgba(0,217,255,0.06);">
+                <div class="temp-scale-swatch" style="background:#00d9ff; box-shadow:0 0 12px rgba(0,217,255,0.6);"></div>
+                <div class="temp-scale-label">FRESCO</div>
+                <div class="temp-scale-value">15°C – 20°C</div>
+            </div>
+            <div class="temp-scale-card" style="background:rgba(57,255,20,0.06);">
+                <div class="temp-scale-swatch" style="background:#39ff14; box-shadow:0 0 12px rgba(57,255,20,0.6);"></div>
+                <div class="temp-scale-label">CONFORT</div>
+                <div class="temp-scale-value">20°C – 26°C</div>
+            </div>
+            <div class="temp-scale-card" style="background:rgba(255,230,0,0.06);">
+                <div class="temp-scale-swatch" style="background:#ffe600; box-shadow:0 0 12px rgba(255,230,0,0.5);"></div>
+                <div class="temp-scale-label">TIBIO</div>
+                <div class="temp-scale-value">26°C – 33°C</div>
+            </div>
+            <div class="temp-scale-card" style="background:rgba(255,140,0,0.07);">
+                <div class="temp-scale-swatch" style="background:#ff8c00; box-shadow:0 0 12px rgba(255,140,0,0.7);"></div>
+                <div class="temp-scale-label">CALIENTE</div>
+                <div class="temp-scale-value">33°C – 45°C</div>
+            </div>
+            <div class="temp-scale-card" style="background:rgba(255,59,59,0.07);">
+                <div class="temp-scale-swatch" style="background:#ff3b3b; box-shadow:0 0 12px rgba(255,59,59,0.7);"></div>
+                <div class="temp-scale-label">CRÍTICO</div>
+                <div class="temp-scale-value">&gt; 45°C</div>
+            </div>
+        </div>
+
+        <p class="section-label">Aplicaciones del sistema sensor + display</p>
+        <div style="overflow-x:auto; margin-bottom:30px;">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Aplicación</th>
+                        <th class="orange">Sensor usado</th>
+                        <th class="cyan">Display</th>
+                        <th class="green">Control típico</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Termómetro digital de escritorio</td>
+                        <td>LM35 / DHT11</td>
+                        <td>LCD 16×2</td>
+                        <td>Arduino + lectura cada 1 s</td>
+                    </tr>
+                    <tr>
+                        <td>Monitor de temperatura y humedad</td>
+                        <td>DHT11 / DHT22</td>
+                        <td>LCD o OLED</td>
+                        <td>Arduino + librería DHT</td>
+                    </tr>
+                    <tr>
+                        <td>Estación meteorológica</td>
+                        <td>BME280</td>
+                        <td>OLED 128×64</td>
+                        <td>ESP32 + WiFi + cloud</td>
+                    </tr>
+                    <tr>
+                        <td>Control de ventilador automático</td>
+                        <td>LM35</td>
+                        <td>LCD indicador</td>
+                        <td>Arduino + relay + PWM</td>
+                    </tr>
+                    <tr>
+                        <td>Alarma de temperatura</td>
+                        <td>DHT11</td>
+                        <td>LED RGB + buzzer</td>
+                        <td>Arduino + umbral de corte</td>
+                    </tr>
+                    <tr>
+                        <td>Invernadero IoT</td>
+                        <td>DHT22</td>
+                        <td>App móvil</td>
+                        <td>ESP8266 + MQTT</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="alert-box">
+            <span class="alert-icon">💡</span>
+            <p><strong>Consejo de programación:</strong> Para evitar lecturas inestables en el LM35, realiza un <strong>promedio de 10 lecturas</strong> antes de mostrar el valor. Con el DHT11 respeta el <strong>tiempo de muestreo mínimo de 1 segundo</strong> entre lecturas para evitar errores de comunicación.</p>
+        </div>
+
+        <p class="section-label" style="margin-top:30px;">Comparativa de sensores de temperatura</p>
+        <div style="overflow-x:auto;">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Característica</th>
+                        <th class="orange">LM35</th>
+                        <th class="cyan">DHT11</th>
+                        <th class="purple">DHT22 / AM2302</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Tipo de salida</td>
+                        <td>Analógica (10 mV/°C)</td>
+                        <td>Digital (1 hilo)</td>
+                        <td>Digital (1 hilo)</td>
+                    </tr>
+                    <tr>
+                        <td>Rango de temp.</td>
+                        <td>−55°C a +150°C</td>
+                        <td>0°C a 50°C</td>
+                        <td>−40°C a 80°C</td>
+                    </tr>
+                    <tr>
+                        <td>Precisión</td>
+                        <td>±0.5°C</td>
+                        <td>±2°C</td>
+                        <td>±0.5°C</td>
+                    </tr>
+                    <tr>
+                        <td>Mide humedad</td>
+                        <td>No</td>
+                        <td>Sí (±5%)</td>
+                        <td>Sí (±2–5%)</td>
+                    </tr>
+                    <tr>
+                        <td>Pines necesarios</td>
+                        <td>3 (VCC, GND, OUT)</td>
+                        <td>3 (VCC, GND, DATA)</td>
+                        <td>3 (VCC, GND, DATA)</td>
+                    </tr>
+                    <tr>
+                        <td>Costo relativo</td>
+                        <td>Muy bajo</td>
+                        <td>Bajo</td>
+                        <td>Medio</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+
+    <!-- ══════════════════════════════════════
+         SECCIÓN 4 – INSTALACIÓN DE LIBRERÍA EN ARDUINO IDE
+    ═══════════════════════════════════════ -->
+    <div class="circuit-card" style="border-left-color:#00d9ff; animation-delay:0.6s;">
+        <div class="circuit-header">
+            <span class="circuit-title">INSTALACIÓN DE LIBRERÍAS</span>
+            <span class="badge">Arduino IDE</span>
+        </div>
+
+        <div class="explanation-box">
+            <h4>📦 ¿Por qué necesitas instalar librerías?</h4>
+            <p>
+                El display LCD 16×2 con módulo I2C y el sensor DHT11/DHT22 requieren librerías externas para funcionar con Arduino. Estas librerías ya incluyen todas las funciones necesarias para inicializar la pantalla, enviar texto y leer el sensor sin tener que programar el protocolo desde cero.
+            </p>
+        </div>
+
+        <!-- PASO A PASO VISUAL -->
+        <p class="section-label">Método 1 — Gestor de librerías (recomendado)</p>
+
+        <div class="timeline">
+
+            <div class="timeline-item">
+                <div class="timeline-dot" style="font-size:0.65rem;">01</div>
+                <div class="timeline-text">
+                    <strong>Abrir el Gestor de Librerías:</strong><br>
+                    En Arduino IDE ve al menú <span style="color:var(--accent-cyan);">Herramientas → Administrar Bibliotecas…</span> (o presiona <span style="color:var(--accent-yellow);">Ctrl + Shift + I</span> en Windows/Linux, <span style="color:var(--accent-yellow);">⌘ + Shift + I</span> en Mac). Se abrirá el panel del gestor de librerías.
+                </div>
+            </div>
+
+            <div class="timeline-item">
+                <div class="timeline-dot o" style="font-size:0.65rem;">02</div>
+                <div class="timeline-text">
+                    <strong>Buscar la librería LiquidCrystal I2C:</strong><br>
+                    En el cuadro de búsqueda escribe <span style="color:var(--accent-orange);">LiquidCrystal I2C</span>. Busca la de autor <strong>Frank de Brabander</strong> (o "johnrickman"). Haz clic en <span style="color:var(--accent-green);">Instalar</span>.
+                </div>
+            </div>
+
+            <div class="timeline-item">
+                <div class="timeline-dot g" style="font-size:0.65rem;">03</div>
+                <div class="timeline-text">
+                    <strong>Instalar librería DHT (si usas DHT11/DHT22):</strong><br>
+                    En el mismo gestor busca <span style="color:var(--accent-orange);">DHT sensor library</span> de autor <strong>Adafruit</strong>. Haz clic en <span style="color:var(--accent-green);">Instalar</span>. Arduino preguntará si deseas instalar dependencias — elige <span style="color:var(--accent-yellow);">"Instalar todo"</span>.
+                </div>
+            </div>
+
+            <div class="timeline-item">
+                <div class="timeline-dot" style="font-size:0.65rem;">04</div>
+                <div class="timeline-text">
+                    <strong>Verificar la instalación:</strong><br>
+                    Ve a <span style="color:var(--accent-cyan);">Archivo → Ejemplos</span> y comprueba que aparecen las carpetas <strong>LiquidCrystal I2C</strong> y <strong>DHT sensor library</strong> en la lista. Si aparecen, la instalación fue exitosa.
+                </div>
+            </div>
+
+        </div>
+
+        <!-- SVG: Diagrama visual del gestor de librerías -->
+        <div class="diagram-container" style="margin-top:10px;">
+            <svg viewBox="0 0 700 220" width="660" xmlns="http://www.w3.org/2000/svg">
+                <defs>
+                    <filter id="glow-ide">
+                        <feGaussianBlur stdDeviation="4" result="blur"/>
+                        <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+                    </filter>
+                </defs>
+
+                <!-- Ventana Arduino IDE (fondo) -->
+                <rect x="20" y="20" width="660" height="185" rx="10" fill="#0d1117" stroke="rgba(0,217,255,0.3)" stroke-width="1.5"/>
+                <!-- Barra de título -->
+                <rect x="20" y="20" width="660" height="28" rx="10" fill="#161b22" stroke="rgba(0,217,255,0.2)" stroke-width="1"/>
+                <rect x="20" y="34" width="660" height="14" fill="#161b22"/>
+                <circle cx="40"  cy="34" r="6" fill="#ff5f56" opacity="0.8"/>
+                <circle cx="58"  cy="34" r="6" fill="#ffbd2e" opacity="0.8"/>
+                <circle cx="76"  cy="34" r="6" fill="#27c93f" opacity="0.8"/>
+                <text x="200" y="38" text-anchor="middle" fill="rgba(255,255,255,0.5)" font-size="9" font-family="Space Mono">Arduino IDE 2 – Administrador de Bibliotecas</text>
+
+                <!-- Panel lateral del gestor -->
+                <rect x="30" y="55" width="200" height="140" rx="6" fill="#0f1419" stroke="rgba(0,217,255,0.15)" stroke-width="1"/>
+                <text x="130" y="72" text-anchor="middle" fill="rgba(0,217,255,0.6)" font-size="9" font-family="Space Mono" font-weight="700">ADMINISTRADOR</text>
+                <text x="130" y="83" text-anchor="middle" fill="rgba(0,217,255,0.6)" font-size="9" font-family="Space Mono" font-weight="700">DE BIBLIOTECAS</text>
+
+                <!-- Barra de búsqueda -->
+                <rect x="38" y="90" width="185" height="18" rx="4" fill="#1c2333" stroke="rgba(0,217,255,0.3)" stroke-width="1"/>
+                <text x="50" y="103" fill="rgba(255,140,0,0.8)" font-size="8" font-family="Space Mono">LiquidCrystal I2C</text>
+                <text x="212" y="103" text-anchor="middle" fill="rgba(0,217,255,0.5)" font-size="10" font-family="Space Mono">🔍</text>
+
+                <!-- Resultado 1 -->
+                <rect x="38" y="115" width="185" height="34" rx="4" fill="rgba(0,217,255,0.05)" stroke="rgba(0,217,255,0.2)" stroke-width="1"/>
+                <text x="46" y="128" fill="rgba(255,255,255,0.9)" font-size="8" font-family="Space Mono" font-weight="700">LiquidCrystal I2C</text>
+                <text x="46" y="139" fill="rgba(255,255,255,0.4)" font-size="7" font-family="Space Mono">Frank de Brabander · v1.1.2</text>
+                <rect x="168" y="120" width="46" height="14" rx="3" fill="rgba(57,255,20,0.15)" stroke="rgba(57,255,20,0.5)" stroke-width="1"/>
+                <text x="191" y="130" text-anchor="middle" fill="rgba(57,255,20,0.9)" font-size="7" font-family="Space Mono">INSTALL</text>
+
+                <!-- Resultado 2 -->
+                <rect x="38" y="155" width="185" height="32" rx="4" fill="#111" stroke="rgba(255,255,255,0.06)" stroke-width="1"/>
+                <text x="46" y="168" fill="rgba(255,255,255,0.7)" font-size="8" font-family="Space Mono" font-weight="700">DHT sensor library</text>
+                <text x="46" y="179" fill="rgba(255,255,255,0.4)" font-size="7" font-family="Space Mono">Adafruit · v1.4.6</text>
+                <rect x="168" y="159" width="46" height="14" rx="3" fill="rgba(57,255,20,0.15)" stroke="rgba(57,255,20,0.5)" stroke-width="1"/>
+                <text x="191" y="169" text-anchor="middle" fill="rgba(57,255,20,0.9)" font-size="7" font-family="Space Mono">INSTALL</text>
+
+                <!-- Menú Herramientas flecha -->
+                <rect x="248" y="55" width="260" height="140" rx="6" fill="#0f1419" stroke="rgba(255,140,0,0.15)" stroke-width="1"/>
+                <text x="378" y="75" text-anchor="middle" fill="rgba(255,140,0,0.7)" font-size="9" font-family="Space Mono" font-weight="700">Herramientas →</text>
+
+                <!-- Items del menú -->
+                <text x="268" y="96"  fill="rgba(255,255,255,0.35)" font-size="8" font-family="Space Mono">Puerto</text>
+                <text x="268" y="112" fill="rgba(255,255,255,0.35)" font-size="8" font-family="Space Mono">Placa</text>
+                <text x="268" y="128" fill="rgba(0,217,255,0.9)"     font-size="8" font-family="Space Mono" font-weight="700">▶ Administrar Bibliotecas…</text>
+                <rect x="258" y="119" width="230" height="16" rx="3" fill="rgba(0,217,255,0.07)" stroke="rgba(0,217,255,0.2)" stroke-width="1"/>
+                <text x="268" y="144" fill="rgba(255,255,255,0.35)" font-size="8" font-family="Space Mono">Monitor Serie</text>
+                <text x="268" y="160" fill="rgba(255,255,255,0.35)" font-size="8" font-family="Space Mono">Actualizar firmware</text>
+
+                <!-- Tecla shortcut -->
+                <rect x="420" y="119" width="54" height="15" rx="3" fill="rgba(255,230,0,0.1)" stroke="rgba(255,230,0,0.35)" stroke-width="1"/>
+                <text x="447" y="130" text-anchor="middle" fill="rgba(255,230,0,0.8)" font-size="7" font-family="Space Mono">Ctrl+Shift+I</text>
+
+                <!-- Flecha que conecta menú con panel -->
+                <line x1="238" y1="127" x2="230" y2="127" stroke="rgba(0,217,255,0.5)" stroke-width="1.5" stroke-dasharray="3 2"/>
+                <polygon points="230,127 238,123 238,131" fill="rgba(0,217,255,0.5)"/>
+
+                <!-- Código de ejemplo a la derecha -->
+                <rect x="525" y="55" width="145" height="140" rx="6" fill="#0a0e14" stroke="rgba(57,255,20,0.15)" stroke-width="1"/>
+                <text x="597" y="72" text-anchor="middle" fill="rgba(57,255,20,0.5)" font-size="8" font-family="Space Mono">sketch.ino</text>
+                <text x="535" y="90"  fill="rgba(168,85,247,0.7)" font-size="7" font-family="Space Mono">#include</text>
+                <text x="575" y="90"  fill="rgba(255,140,0,0.7)"  font-size="7" font-family="Space Mono">&lt;Wire.h&gt;</text>
+                <text x="535" y="103" fill="rgba(168,85,247,0.7)" font-size="7" font-family="Space Mono">#include</text>
+                <text x="575" y="103" fill="rgba(255,140,0,0.7)"  font-size="7" font-family="Space Mono">&lt;LiquidCrystal_I2C.h&gt;</text>
+                <text x="535" y="118" fill="rgba(168,85,247,0.7)" font-size="7" font-family="Space Mono">#include</text>
+                <text x="575" y="118" fill="rgba(255,140,0,0.7)"  font-size="7" font-family="Space Mono">&lt;DHT.h&gt;</text>
+                <text x="535" y="135" fill="rgba(57,255,20,0.4)"  font-size="7" font-family="Space Mono">// Dirección I2C</text>
+                <text x="535" y="148" fill="rgba(0,217,255,0.6)"  font-size="7" font-family="Space Mono">LiquidCrystal_I2C</text>
+                <text x="535" y="161" fill="rgba(0,217,255,0.6)"  font-size="7" font-family="Space Mono">lcd(0x27, 16, 2);</text>
+                <text x="535" y="174" fill="rgba(0,217,255,0.6)"  font-size="7" font-family="Space Mono">DHT dht(2, DHT11);</text>
+            </svg>
+        </div>
+
+        <!-- MÉTODO 2: ZIP -->
+        <p class="section-label" style="margin-top:30px;">Método 2 — Instalar desde archivo .ZIP</p>
+        <div class="timeline">
+            <div class="timeline-item">
+                <div class="timeline-dot r" style="font-size:0.6rem;">ZIP</div>
+                <div class="timeline-text">
+                    <strong>Descargar el ZIP desde GitHub:</strong><br>
+                    Ve a <span style="color:var(--accent-cyan);">github.com/johnrickman/LiquidCrystal_I2C</span>, haz clic en <span style="color:var(--accent-green);">Code → Download ZIP</span>. Guarda el archivo en tu computadora.
+                </div>
+            </div>
+            <div class="timeline-item">
+                <div class="timeline-dot r" style="font-size:0.6rem;">ZIP</div>
+                <div class="timeline-text">
+                    <strong>Importar en Arduino IDE:</strong><br>
+                    Ve a <span style="color:var(--accent-cyan);">Sketch → Incluir Librería → Añadir biblioteca .ZIP…</span>, selecciona el archivo descargado y haz clic en <span style="color:var(--accent-green);">Abrir</span>. La librería quedará instalada automáticamente.
+                </div>
+            </div>
+        </div>
+
+        <!-- Código de ejemplo -->
+        <p class="section-label" style="margin-top:30px;">Código de ejemplo — Temperatura en LCD</p>
+        <div style="background:#0a0e14; border:1px solid rgba(0,217,255,0.2); border-radius:14px; padding:24px; overflow-x:auto; margin-bottom:24px;">
+            <pre style="font-family:'Space Mono',monospace; font-size:0.82rem; line-height:1.9; color:rgba(255,255,255,0.85);"><span style="color:#a855f7;">#include</span> <span style="color:#ff8c00;">&lt;Wire.h&gt;</span>
+<span style="color:#a855f7;">#include</span> <span style="color:#ff8c00;">&lt;LiquidCrystal_I2C.h&gt;</span>
+<span style="color:#a855f7;">#include</span> <span style="color:#ff8c00;">&lt;DHT.h&gt;</span>
+
+<span style="color:#57a6ff;">// Configura el LCD: dirección I2C, columnas, filas</span>
+LiquidCrystal_I2C <span style="color:#00d9ff;">lcd</span>(0x27, 16, 2);
+
+<span style="color:#57a6ff;">// Configura el sensor DHT11 en el pin 2</span>
+<span style="color:#a855f7;">#define</span> <span style="color:#ffe600;">DHTPIN</span>  2
+<span style="color:#a855f7;">#define</span> <span style="color:#ffe600;">DHTTYPE</span> DHT11
+DHT <span style="color:#00d9ff;">dht</span>(DHTPIN, DHTTYPE);
+
+<span style="color:#39ff14;">void</span> <span style="color:#00d9ff;">setup</span>() {
+  lcd.<span style="color:#ff8c00;">init</span>();          <span style="color:#57a6ff;">// Inicializa el LCD</span>
+  lcd.<span style="color:#ff8c00;">backlight</span>();     <span style="color:#57a6ff;">// Enciende la retroiluminación</span>
+  dht.<span style="color:#ff8c00;">begin</span>();         <span style="color:#57a6ff;">// Inicializa el sensor</span>
+}
+
+<span style="color:#39ff14;">void</span> <span style="color:#00d9ff;">loop</span>() {
+  <span style="color:#39ff14;">float</span> temp = dht.<span style="color:#ff8c00;">readTemperature</span>();   <span style="color:#57a6ff;">// Lee °C</span>
+  <span style="color:#39ff14;">float</span> hum  = dht.<span style="color:#ff8c00;">readHumidity</span>();      <span style="color:#57a6ff;">// Lee %</span>
+
+  lcd.<span style="color:#ff8c00;">setCursor</span>(0, 0);                  <span style="color:#57a6ff;">// Línea 1</span>
+  lcd.<span style="color:#ff8c00;">print</span>(<span style="color:#ffe600;">"Temp: "</span>);
+  lcd.<span style="color:#ff8c00;">print</span>(temp);
+  lcd.<span style="color:#ff8c00;">print</span>(<span style="color:#ffe600;">" C"</span>);
+
+  lcd.<span style="color:#ff8c00;">setCursor</span>(0, 1);                  <span style="color:#57a6ff;">// Línea 2</span>
+  lcd.<span style="color:#ff8c00;">print</span>(<span style="color:#ffe600;">"Hum:  "</span>);
+  lcd.<span style="color:#ff8c00;">print</span>(hum);
+  lcd.<span style="color:#ff8c00;">print</span>(<span style="color:#ffe600;">" %"</span>);
+
+  delay(1000);   <span style="color:#57a6ff;">// Actualiza cada 1 segundo</span>
+}</pre>
+        </div>
+
+        <!-- Tabla de librerías -->
+        <p class="section-label">Librerías necesarias y dónde encontrarlas</p>
+        <div style="overflow-x:auto; margin-bottom:24px;">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Librería</th>
+                        <th class="cyan">Autor</th>
+                        <th class="orange">Para qué sirve</th>
+                        <th class="green">Dónde instalarla</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>LiquidCrystal I2C</td>
+                        <td>Frank de Brabander</td>
+                        <td>Control del LCD 16×2 por I2C</td>
+                        <td>Gestor de bibliotecas Arduino IDE</td>
+                    </tr>
+                    <tr>
+                        <td>Wire</td>
+                        <td>Arduino (incluida)</td>
+                        <td>Comunicación I2C (SDA/SCL)</td>
+                        <td>Ya viene instalada en Arduino IDE</td>
+                    </tr>
+                    <tr>
+                        <td>DHT sensor library</td>
+                        <td>Adafruit</td>
+                        <td>Leer temperatura y humedad del DHT11/22</td>
+                        <td>Gestor de bibliotecas Arduino IDE</td>
+                    </tr>
+                    <tr>
+                        <td>Adafruit Unified Sensor</td>
+                        <td>Adafruit</td>
+                        <td>Dependencia requerida por DHT library</td>
+                        <td>Se instala automáticamente con DHT lib</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="alert-box">
+            <span class="alert-icon">⚠️</span>
+            <p><strong>Si el LCD no muestra nada:</strong> lo más común es que la dirección I2C sea incorrecta. Cambia <strong>0x27</strong> por <strong>0x3F</strong> en el código. También puedes usar el sketch de escáner I2C (<span style="color:var(--accent-yellow);">Archivo → Ejemplos → Wire → i2c_scanner</span>) para detectar la dirección real de tu módulo.</p>
+        </div>
+
+    </div>
+
+</div>
+
+<footer class="footer">
+    <div class="team-credits">
+        <strong>Realizado por:</strong><br>
+        PEREZ HERNANDEZ LAURA NAOMI • FLORES FLORES MARCO ANTONIO<br>
+        Rodríguez Espinosa Génesis Ayde • González Espinosa Noé de Jesús
+    </div>
+</footer>
+
+</body>
+</html>
