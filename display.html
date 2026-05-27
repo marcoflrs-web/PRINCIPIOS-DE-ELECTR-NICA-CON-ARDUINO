@@ -1,0 +1,938 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Display LCD 16×2 I2C con Arduino – Guía Completa</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-black: #0a0a0a;
+            --accent-cyan:   #00d9ff;
+            --accent-orange: #ff8c00;
+            --accent-red:    #ff3b3b;
+            --accent-yellow: #ffe600;
+            --accent-green:  #39ff14;
+            --accent-blue:   #4488ff;
+            --accent-purple: #a855f7;
+            --text-white:    #ffffff;
+            --card-bg:       #1a1a1a;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Space Mono', monospace;
+            background: var(--primary-black);
+            color: var(--text-white);
+            overflow-x: hidden;
+            min-height: 100vh;
+        }
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background:
+                repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,217,255,0.025) 2px, rgba(0,217,255,0.025) 4px),
+                repeating-linear-gradient(90deg, transparent, transparent 2px, rgba(0,217,255,0.025) 2px, rgba(0,217,255,0.025) 4px);
+            pointer-events: none;
+            animation: gridMove 20s linear infinite;
+            z-index: 0;
+        }
+        @keyframes gridMove {
+            0%   { transform: translate(0, 0); }
+            100% { transform: translate(50px, 50px); }
+        }
+        .page-header {
+            position: relative;
+            z-index: 2;
+            padding: 60px 20px 40px;
+            text-align: center;
+            background: linear-gradient(135deg, rgba(10,10,10,0.95), rgba(0,60,100,0.18)),
+                        url('https://images.unsplash.com/photo-1518770660439-4636190af475?w=1920&q=80') center/cover;
+            border-bottom: 2px solid rgba(0,217,255,0.35);
+        }
+        .page-header h1 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: clamp(1.4rem, 4vw, 2.6rem);
+            font-weight: 900;
+            letter-spacing: 0.08em;
+            animation: sonarGlow 3s ease-in-out infinite;
+            margin-bottom: 10px;
+        }
+        @keyframes sonarGlow {
+            0%   { color: var(--accent-cyan);  text-shadow: 0 0 20px var(--accent-cyan),  0 0 60px rgba(0,217,255,0.4); }
+            50%  { color: var(--accent-green); text-shadow: 0 0 20px var(--accent-green), 0 0 60px rgba(57,255,20,0.4); }
+            100% { color: var(--accent-cyan);  text-shadow: 0 0 20px var(--accent-cyan),  0 0 60px rgba(0,217,255,0.4); }
+        }
+        .page-header p { color: rgba(255,255,255,0.6); font-size: 0.9rem; margin-bottom: 20px; }
+        .page-header::after {
+            content: '';
+            display: block;
+            width: 140px;
+            height: 4px;
+            background: linear-gradient(90deg, var(--accent-cyan), var(--accent-green), var(--accent-blue));
+            margin: 0 auto;
+        }
+        .btn-back {
+            display: inline-block;
+            margin-top: 25px;
+            padding: 12px 28px;
+            border: 2px solid var(--accent-cyan);
+            color: var(--text-white);
+            font-family: 'Space Mono', monospace;
+            font-size: 0.85rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            text-decoration: none;
+            border-radius: 8px;
+            transition: all 0.3s;
+        }
+        .btn-back:hover { background: var(--accent-cyan); color: var(--primary-black); box-shadow: 0 0 20px rgba(0,217,255,0.4); }
+        .content {
+            position: relative;
+            z-index: 2;
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 60px 20px;
+            display: grid;
+            gap: 50px;
+        }
+        .circuit-card {
+            background: var(--card-bg);
+            border: 2px solid rgba(0,217,255,0.2);
+            border-left: 5px solid var(--accent-cyan);
+            border-radius: 20px;
+            padding: 40px;
+            animation: fadeInUp 0.8s ease-out both;
+        }
+        .circuit-card.orange { border-left-color: var(--accent-orange); border-color: rgba(255,140,0,0.2);  animation-delay: 0.2s; }
+        .circuit-card.purple { border-left-color: var(--accent-purple); border-color: rgba(168,85,247,0.2); animation-delay: 0.4s; }
+        .circuit-card.green  { border-left-color: var(--accent-green);  border-color: rgba(57,255,20,0.2);  animation-delay: 0.1s; }
+        .circuit-card.blue   { border-left-color: var(--accent-blue);   border-color: rgba(68,136,255,0.2); animation-delay: 0.3s; }
+        @keyframes fadeInUp { from { opacity: 0; transform: translateY(40px); } to { opacity: 1; transform: translateY(0); } }
+        .circuit-header { display: flex; align-items: center; gap: 16px; margin-bottom: 30px; flex-wrap: wrap; }
+        .circuit-title { font-family: 'Orbitron', sans-serif; font-size: 1.6rem; font-weight: 900; color: var(--accent-cyan); text-shadow: 0 0 20px var(--accent-cyan); }
+        .circuit-title.orange { color: var(--accent-orange); text-shadow: 0 0 20px var(--accent-orange); }
+        .circuit-title.purple { color: var(--accent-purple); text-shadow: 0 0 20px var(--accent-purple); }
+        .circuit-title.green  { color: var(--accent-green);  text-shadow: 0 0 20px var(--accent-green); }
+        .circuit-title.blue   { color: var(--accent-blue);   text-shadow: 0 0 20px var(--accent-blue); }
+        .badge { padding: 6px 14px; border: 1px solid rgba(0,217,255,0.4); background: rgba(0,217,255,0.1); color: var(--accent-cyan); border-radius: 30px; font-size: 0.75rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; }
+        .badge.orange { border-color: rgba(255,140,0,0.4);  background: rgba(255,140,0,0.1);  color: var(--accent-orange); }
+        .badge.green  { border-color: rgba(57,255,20,0.4);  background: rgba(57,255,20,0.1);  color: var(--accent-green); }
+        .badge.purple { border-color: rgba(168,85,247,0.4); background: rgba(168,85,247,0.1); color: var(--accent-purple); }
+        .badge.blue   { border-color: rgba(68,136,255,0.4); background: rgba(68,136,255,0.1); color: var(--accent-blue); }
+        .diagram-container {
+            background: #0f0f0f;
+            border: 1px solid rgba(0,217,255,0.15);
+            border-radius: 14px;
+            padding: 30px;
+            margin-bottom: 30px;
+            display: flex;
+            justify-content: center;
+            overflow: hidden;
+        }
+        .diagram-container svg { max-width: 100%; height: auto; }
+        .section-label { font-family: 'Orbitron', sans-serif; font-size: 0.85rem; color: rgba(255,255,255,0.4); text-transform: uppercase; letter-spacing: 0.15em; margin-bottom: 16px; }
+        .components-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 16px; margin-bottom: 30px; }
+        .component-card { background: #111; border: 1px solid rgba(0,217,255,0.12); border-radius: 12px; padding: 18px; display: flex; gap: 14px; align-items: flex-start; transition: transform 0.3s, box-shadow 0.3s; }
+        .component-card:hover { transform: translateY(-4px); box-shadow: 0 8px 30px rgba(0,217,255,0.15); }
+        .component-card.orange { border-color: rgba(255,140,0,0.15); }
+        .component-card.orange:hover { box-shadow: 0 8px 30px rgba(255,140,0,0.18); }
+        .component-card.purple { border-color: rgba(168,85,247,0.15); }
+        .component-card.purple:hover { box-shadow: 0 8px 30px rgba(168,85,247,0.18); }
+        .component-icon { width: 42px; height: 42px; border-radius: 10px; background: rgba(0,217,255,0.1); border: 1px solid rgba(0,217,255,0.3); display: flex; align-items: center; justify-content: center; font-size: 1.3rem; flex-shrink: 0; }
+        .component-icon.orange { background: rgba(255,140,0,0.1);  border-color: rgba(255,140,0,0.3); }
+        .component-icon.purple { background: rgba(168,85,247,0.1); border-color: rgba(168,85,247,0.3); }
+        .component-icon.green  { background: rgba(57,255,20,0.1);  border-color: rgba(57,255,20,0.3); }
+        .component-name { font-family: 'Orbitron', sans-serif; font-size: 0.75rem; color: var(--accent-cyan); margin-bottom: 5px; }
+        .component-name.orange { color: var(--accent-orange); }
+        .component-name.purple { color: var(--accent-purple); }
+        .component-name.green  { color: var(--accent-green); }
+        .component-desc { font-size: 0.78rem; color: rgba(255,255,255,0.6); line-height: 1.6; }
+        .explanation-box { background: linear-gradient(135deg, rgba(0,217,255,0.05), rgba(123,44,191,0.05)); border: 1px solid rgba(0,217,255,0.2); border-radius: 14px; padding: 24px; margin-bottom: 20px; }
+        .explanation-box.orange { background: linear-gradient(135deg, rgba(255,140,0,0.05), rgba(255,59,59,0.05)); border-color: rgba(255,140,0,0.25); }
+        .explanation-box.purple { background: linear-gradient(135deg, rgba(168,85,247,0.05), rgba(68,136,255,0.05)); border-color: rgba(168,85,247,0.25); }
+        .explanation-box.green  { background: linear-gradient(135deg, rgba(57,255,20,0.04), rgba(0,217,255,0.04)); border-color: rgba(57,255,20,0.22); }
+        .explanation-box h4 { font-family: 'Orbitron', sans-serif; font-size: 0.9rem; color: var(--accent-cyan); margin-bottom: 12px; }
+        .explanation-box.orange h4 { color: var(--accent-orange); }
+        .explanation-box.purple h4 { color: var(--accent-purple); }
+        .explanation-box.green  h4 { color: var(--accent-green); }
+        .explanation-box p { color: rgba(255,255,255,0.75); font-size: 0.88rem; line-height: 1.9; }
+        .alert-box { background: rgba(255,230,0,0.06); border: 1px solid rgba(255,230,0,0.3); border-left: 4px solid var(--accent-yellow); border-radius: 12px; padding: 18px 20px; display: flex; gap: 12px; align-items: flex-start; margin-top: 16px; }
+        .alert-box .alert-icon { font-size: 1.3rem; flex-shrink: 0; margin-top: 2px; }
+        .alert-box p { color: rgba(255,255,255,0.75); font-size: 0.85rem; line-height: 1.8; }
+        .alert-box strong { color: var(--accent-yellow); }
+        .alert-box.green { background: rgba(57,255,20,0.05); border-color: rgba(57,255,20,0.3); border-left-color: var(--accent-green); }
+        .alert-box.green strong { color: var(--accent-green); }
+        .flow-path { stroke-dasharray: 8 6; animation: dash 1.2s linear infinite; }
+        @keyframes dash { to { stroke-dashoffset: -28; } }
+        .formula-box { background: #0f0f0f; border: 1px solid rgba(0,217,255,0.3); border-radius: 12px; padding: 20px 28px; text-align: center; margin: 20px 0; }
+        .formula-text { font-family: 'Orbitron', sans-serif; font-size: 1.05rem; letter-spacing: 0.1em; animation: sonarGlow 3s ease-in-out infinite; }
+        .formula-desc { font-size: 0.78rem; color: rgba(255,255,255,0.45); margin-top: 8px; }
+        .data-table { width: 100%; border-collapse: collapse; font-size: 0.87rem; font-family: 'Space Mono', monospace; }
+        .data-table thead tr { border-bottom: 2px solid rgba(0,217,255,0.3); }
+        .data-table th { padding: 14px 12px; text-align: left; color: rgba(255,255,255,0.45); font-weight: 400; text-transform: uppercase; letter-spacing: 0.1em; }
+        .data-table th.cyan   { color: var(--accent-cyan); }
+        .data-table th.orange { color: var(--accent-orange); }
+        .data-table th.green  { color: var(--accent-green); }
+        .data-table th.purple { color: var(--accent-purple); }
+        .data-table td { padding: 14px 12px; color: rgba(255,255,255,0.8); border-bottom: 1px solid rgba(255,255,255,0.06); }
+        .data-table tr:hover td { background: rgba(255,255,255,0.03); }
+        .timeline { display: grid; gap: 16px; margin-bottom: 24px; }
+        .timeline-item { display: flex; gap: 16px; align-items: flex-start; }
+        .timeline-dot { width: 36px; height: 36px; border-radius: 50%; border: 2px solid var(--accent-cyan); display: flex; align-items: center; justify-content: center; font-family: 'Orbitron', sans-serif; font-size: 0.7rem; color: var(--accent-cyan); flex-shrink: 0; background: rgba(0,217,255,0.07); }
+        .timeline-dot.o { border-color: var(--accent-orange); color: var(--accent-orange); background: rgba(255,140,0,0.07); }
+        .timeline-dot.g { border-color: var(--accent-green);  color: var(--accent-green);  background: rgba(57,255,20,0.07); }
+        .timeline-dot.r { border-color: var(--accent-red);    color: var(--accent-red);    background: rgba(255,59,59,0.07); }
+        .timeline-dot.p { border-color: var(--accent-purple); color: var(--accent-purple); background: rgba(168,85,247,0.07); }
+        .timeline-text { font-size: 0.85rem; color: rgba(255,255,255,0.75); line-height: 1.7; padding-top: 6px; }
+        .timeline-text strong { color: #fff; }
+        .pin-row { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.06); }
+        .pin-dot { width: 14px; height: 14px; border-radius: 50%; flex-shrink: 0; }
+        .pin-name { font-family: 'Orbitron', sans-serif; font-size: 0.78rem; min-width: 80px; }
+        .pin-desc { font-size: 0.82rem; color: rgba(255,255,255,0.65); }
+        .lcd-preview {
+            background: #1a2a1a;
+            border: 3px solid rgba(57,255,20,0.4);
+            border-radius: 10px;
+            padding: 16px 24px;
+            font-family: 'Space Mono', monospace;
+            font-size: 1.1rem;
+            color: var(--accent-green);
+            text-shadow: 0 0 8px var(--accent-green);
+            letter-spacing: 0.15em;
+            display: inline-block;
+            min-width: 320px;
+            box-shadow: inset 0 0 20px rgba(0,0,0,0.5), 0 0 20px rgba(57,255,20,0.15);
+        }
+        .lcd-preview .lcd-row { min-height: 1.6em; }
+        .lcd-preview .cursor { animation: blink 1s step-end infinite; }
+        @keyframes blink { 50% { opacity: 0; } }
+        .lcd-center { display: flex; justify-content: center; margin: 20px 0; }
+        .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 24px; }
+        @media (max-width: 700px) { .two-col { grid-template-columns: 1fr; } }
+        .footer { position: relative; z-index: 2; text-align: center; padding: 60px 20px; border-top: 1px solid rgba(0,217,255,0.2); }
+        .team-credits { font-size: 0.9rem; color: rgba(255,255,255,0.55); line-height: 1.9; }
+        .team-credits strong { color: var(--accent-cyan); }
+        @media (max-width: 600px) { .circuit-card { padding: 24px 16px; } .components-grid { grid-template-columns: 1fr 1fr; } }
+        code { background: rgba(0,217,255,0.08); border: 1px solid rgba(0,217,255,0.2); border-radius: 4px; padding: 2px 7px; font-size: 0.85em; color: var(--accent-cyan); }
+    </style>
+</head>
+<body>
+
+<div class="page-header">
+    <h1>DISPLAY LCD 16×2 con I2C + ARDUINO</h1>
+    <p>Guía completa · Funcionamiento, conexión, protocolo I2C y programación</p>
+    <a href="diagramas.html" class="btn-back">← Volver a Diagramas</a>
+</div>
+
+<div class="content">
+
+<!-- ══════════════════════════════════════════
+     SECCIÓN 1 – ¿QUÉ ES EL LCD 16×2?
+     ══════════════════════════════════════════ -->
+<div class="circuit-card">
+    <div class="circuit-header">
+        <span class="circuit-title">¿QUÉ ES EL LCD 16×2?</span>
+        <span class="badge">Pantalla de cristal líquido</span>
+    </div>
+
+    <p class="section-label">Visión general del módulo</p>
+
+    <!-- Diagrama visual del LCD -->
+    <div class="diagram-container">
+        <svg viewBox="0 0 700 260" xmlns="http://www.w3.org/2000/svg">
+            <!-- Cuerpo LCD -->
+            <rect x="60" y="30" width="580" height="200" rx="12" fill="#0d1a0d" stroke="rgba(57,255,20,0.5)" stroke-width="2"/>
+            <!-- Pantalla interior -->
+            <rect x="80" y="50" width="540" height="160" rx="6" fill="#1a2e1a" stroke="rgba(57,255,20,0.3)" stroke-width="1"/>
+            <!-- Fila 1 - 16 caracteres -->
+            <text x="100" y="110" font-family="Space Mono" font-size="22" fill="rgba(57,255,20,0.95)" letter-spacing="14">Hello World!    </text>
+            <!-- Fila 2 -->
+            <text x="100" y="152" font-family="Space Mono" font-size="22" fill="rgba(57,255,20,0.95)" letter-spacing="14">Temp: 24.5°C    </text>
+            <!-- Etiquetas filas -->
+            <text x="65" y="115" font-family="Space Mono" font-size="8" fill="rgba(57,255,20,0.4)" text-anchor="middle">F1</text>
+            <text x="65" y="157" font-family="Space Mono" font-size="8" fill="rgba(57,255,20,0.4)" text-anchor="middle">F2</text>
+            <!-- Pines I2C en la parte inferior -->
+            <rect x="130" y="210" width="14" height="18" rx="2" fill="#555" stroke="#888" stroke-width="1"/>
+            <rect x="158" y="210" width="14" height="18" rx="2" fill="#c00" stroke="#f44" stroke-width="1"/>
+            <rect x="186" y="210" width="14" height="18" rx="2" fill="#111" stroke="#555" stroke-width="1"/>
+            <rect x="214" y="210" width="14" height="18" rx="2" fill="#f90" stroke="#fc0" stroke-width="1"/>
+            <text x="137" y="240" font-family="Space Mono" font-size="8" fill="rgba(255,255,255,0.6)" text-anchor="middle">VCC</text>
+            <text x="165" y="240" font-family="Space Mono" font-size="8" fill="rgba(255,100,100,0.8)" text-anchor="middle">GND</text>
+            <text x="193" y="240" font-family="Space Mono" font-size="8" fill="rgba(0,217,255,0.8)" text-anchor="middle">SDA</text>
+            <text x="221" y="240" font-family="Space Mono" font-size="8" fill="rgba(255,200,0,0.8)" text-anchor="middle">SCL</text>
+            <!-- Módulo I2C detrás -->
+            <rect x="110" y="200" width="140" height="25" rx="4" fill="#0a140a" stroke="rgba(57,255,20,0.3)" stroke-width="1"/>
+            <text x="180" y="216" font-family="Space Mono" font-size="7" fill="rgba(57,255,20,0.5)" text-anchor="middle">MÓDULO I2C (PCF8574)</text>
+            <!-- Dimensiones -->
+            <line x1="60" y1="15" x2="640" y2="15" stroke="rgba(0,217,255,0.3)" stroke-width="1" stroke-dasharray="4 3"/>
+            <text x="350" y="11" font-family="Space Mono" font-size="9" fill="rgba(0,217,255,0.5)" text-anchor="middle">80 mm</text>
+            <line x1="650" y1="30" x2="650" y2="230" stroke="rgba(255,140,0,0.3)" stroke-width="1" stroke-dasharray="4 3"/>
+            <text x="668" y="135" font-family="Space Mono" font-size="9" fill="rgba(255,140,0,0.5)" text-anchor="middle" transform="rotate(90,668,135)">36 mm</text>
+            <!-- Etiqueta 16 cols -->
+            <text x="350" y="78" font-family="Space Mono" font-size="9" fill="rgba(255,255,255,0.25)" text-anchor="middle">← 16 columnas →</text>
+            <!-- Retro-iluminación glow -->
+            <rect x="80" y="50" width="540" height="160" rx="6" fill="none" stroke="rgba(57,255,20,0.08)" stroke-width="8"/>
+        </svg>
+    </div>
+
+    <div class="explanation-box">
+        <h4>Descripción del módulo</h4>
+        <p>El <strong>LCD 16×2</strong> (Liquid Crystal Display) es una pantalla de cristal líquido que puede mostrar <strong>16 caracteres por fila en 2 filas</strong>, dando un total de 32 caracteres simultáneos. Cada carácter se forma con una matriz de <strong>5×8 píxeles</strong>. Es uno de los componentes más utilizados con Arduino para mostrar información de sensores, menús o mensajes de estado.</p>
+    </div>
+
+    <div class="components-grid">
+        <div class="component-card">
+            <div class="component-icon">🖥️</div>
+            <div>
+                <div class="component-name">LCD HD44780</div>
+                <div class="component-desc">Controlador estándar. Compatible con todas las librerías LCD de Arduino.</div>
+            </div>
+        </div>
+        <div class="component-card orange">
+            <div class="component-icon orange">🔌</div>
+            <div>
+                <div class="component-name orange">Módulo I2C</div>
+                <div class="component-desc">Chip PCF8574 soldado al LCD. Reduce los pines de 16 a solo 4.</div>
+            </div>
+        </div>
+        <div class="component-card">
+            <div class="component-icon">💡</div>
+            <div>
+                <div class="component-name">Retroiluminación</div>
+                <div class="component-desc">LED azul o verde en la parte trasera. Se puede encender o apagar por software.</div>
+            </div>
+        </div>
+        <div class="component-card orange">
+            <div class="component-icon orange">🎛️</div>
+            <div>
+                <div class="component-name orange">Potenciómetro</div>
+                <div class="component-desc">Tornillo azul en el módulo I2C para ajustar el contraste de los caracteres.</div>
+            </div>
+        </div>
+        <div class="component-card">
+            <div class="component-icon">📐</div>
+            <div>
+                <div class="component-name">Dimensiones</div>
+                <div class="component-desc">80 × 36 mm. Encaja perfectamente en proyectos compactos y cajas de proyectos.</div>
+            </div>
+        </div>
+        <div class="component-card orange">
+            <div class="component-icon orange">⚡</div>
+            <div>
+                <div class="component-name orange">Voltaje</div>
+                <div class="component-desc">Opera a 5V. Compatible directamente con Arduino UNO, MEGA y Nano.</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Preview del LCD en código -->
+    <p class="section-label">Simulación de pantalla LCD</p>
+    <div class="lcd-center">
+        <div class="lcd-preview">
+            <div class="lcd-row">Hola Arduino!&nbsp;&nbsp;&nbsp;</div>
+            <div class="lcd-row">Temp: 24.5 C&nbsp;&nbsp;&nbsp;<span class="cursor">█</span></div>
+        </div>
+    </div>
+</div>
+
+
+<!-- ══════════════════════════════════════════
+     SECCIÓN 2 – PROTOCOLO I2C
+     ══════════════════════════════════════════ -->
+<div class="circuit-card orange">
+    <div class="circuit-header">
+        <span class="circuit-title orange">PROTOCOLO I2C</span>
+        <span class="badge orange">Comunicación serial</span>
+    </div>
+
+    <p class="section-label">¿Cómo funciona el I2C?</p>
+
+    <!-- Diagrama I2C -->
+    <div class="diagram-container">
+        <svg viewBox="0 0 700 220" xmlns="http://www.w3.org/2000/svg">
+            <!-- Arduino -->
+            <rect x="30" y="60" width="110" height="100" rx="10" fill="#111" stroke="rgba(0,217,255,0.5)" stroke-width="2"/>
+            <text x="85" y="105" font-family="Space Mono" font-size="10" fill="rgba(0,217,255,0.9)" text-anchor="middle">ARDUINO</text>
+            <text x="85" y="122" font-family="Space Mono" font-size="8"  fill="rgba(0,217,255,0.5)" text-anchor="middle">MAESTRO</text>
+            <text x="85" y="140" font-family="Space Mono" font-size="7"  fill="rgba(255,255,255,0.35)" text-anchor="middle">A4=SDA / A5=SCL</text>
+
+            <!-- Líneas SDA y SCL -->
+            <!-- SDA -->
+            <line x1="140" y1="90" x2="560" y2="90" stroke="rgba(0,217,255,0.6)" stroke-width="2"/>
+            <text x="350" y="82" font-family="Space Mono" font-size="9" fill="rgba(0,217,255,0.7)" text-anchor="middle">SDA (datos)</text>
+            <!-- Pulsos SDA animados -->
+            <path d="M 155 90 L 155 75 L 180 75 L 180 90 L 210 90 L 210 75 L 235 75 L 235 90 L 255 90 L 255 75 L 275 75 L 275 90 L 295 90 L 295 75 L 310 75 L 310 90" fill="none" stroke="rgba(0,217,255,0.4)" stroke-width="1.5" class="flow-path"/>
+
+            <!-- SCL -->
+            <line x1="140" y1="130" x2="560" y2="130" stroke="rgba(255,200,0,0.6)" stroke-width="2"/>
+            <text x="350" y="148" font-family="Space Mono" font-size="9" fill="rgba(255,200,0,0.7)" text-anchor="middle">SCL (reloj)</text>
+            <!-- Pulsos SCL regulares -->
+            <path d="M 155 130 L 155 115 L 175 115 L 175 130 L 200 130 L 200 115 L 220 115 L 220 130 L 245 130 L 245 115 L 265 115 L 265 130 L 290 130 L 290 115 L 310 115 L 310 130" fill="none" stroke="rgba(255,200,0,0.4)" stroke-width="1.5" class="flow-path"/>
+
+            <!-- Dispositivo 1: LCD I2C 0x27 -->
+            <rect x="560" y="50" width="110" height="50" rx="8" fill="#111" stroke="rgba(57,255,20,0.5)" stroke-width="2"/>
+            <text x="615" y="73" font-family="Space Mono" font-size="8"  fill="rgba(57,255,20,0.9)" text-anchor="middle">LCD I2C</text>
+            <text x="615" y="89" font-family="Space Mono" font-size="7"  fill="rgba(57,255,20,0.5)" text-anchor="middle">Dirección: 0x27</text>
+
+            <!-- Dispositivo 2: otro sensor -->
+            <rect x="560" y="120" width="110" height="50" rx="8" fill="#111" stroke="rgba(168,85,247,0.5)" stroke-width="2"/>
+            <text x="615" y="143" font-family="Space Mono" font-size="8"  fill="rgba(168,85,247,0.9)" text-anchor="middle">Sensor I2C</text>
+            <text x="615" y="159" font-family="Space Mono" font-size="7"  fill="rgba(168,85,247,0.5)" text-anchor="middle">Dirección: 0x3C</text>
+
+            <!-- Bajadas al bus -->
+            <line x1="560" y1="75"  x2="530" y2="75"  stroke="rgba(57,255,20,0.4)"   stroke-width="1.5"/>
+            <line x1="530" y1="75"  x2="530" y2="110" stroke="rgba(57,255,20,0.4)"   stroke-width="1.5"/>
+            <line x1="560" y1="145" x2="530" y2="145" stroke="rgba(168,85,247,0.4)" stroke-width="1.5"/>
+            <line x1="530" y1="145" x2="530" y2="130" stroke="rgba(168,85,247,0.4)" stroke-width="1.5"/>
+
+            <!-- Resistencias pull-up -->
+            <rect x="410" y="68" width="30" height="14" rx="3" fill="#1a1000" stroke="rgba(255,200,0,0.4)" stroke-width="1"/>
+            <text x="425" y="78" font-family="Space Mono" font-size="6" fill="rgba(255,200,0,0.6)" text-anchor="middle">4.7kΩ</text>
+            <rect x="410" y="108" width="30" height="14" rx="3" fill="#1a1000" stroke="rgba(255,200,0,0.4)" stroke-width="1"/>
+            <text x="425" y="118" font-family="Space Mono" font-size="6" fill="rgba(255,200,0,0.6)" text-anchor="middle">4.7kΩ</text>
+
+            <!-- VCC pull-up -->
+            <line x1="425" y1="68"  x2="425" y2="55"  stroke="rgba(255,80,80,0.4)" stroke-width="1.5"/>
+            <line x1="425" y1="108" x2="425" y2="95"  stroke="rgba(255,80,80,0.4)" stroke-width="1.5"/>
+            <text x="440" y="52" font-family="Space Mono" font-size="7" fill="rgba(255,80,80,0.5)">+5V</text>
+        </svg>
+    </div>
+
+    <div class="timeline">
+        <div class="timeline-item">
+            <div class="timeline-dot">1</div>
+            <div class="timeline-text">
+                <strong>Solo 2 cables de datos:</strong> El protocolo I2C usa únicamente <code>SDA</code> (datos) y <code>SCL</code> (reloj) para comunicarse con múltiples dispositivos al mismo tiempo en el mismo bus.
+            </div>
+        </div>
+        <div class="timeline-item">
+            <div class="timeline-dot o">2</div>
+            <div class="timeline-text">
+                <strong>Dirección única:</strong> Cada dispositivo I2C tiene una dirección hexadecimal única (<code>0x27</code> o <code>0x3F</code> para el LCD). El Arduino llama a esa dirección para comunicarse con él.
+            </div>
+        </div>
+        <div class="timeline-item">
+            <div class="timeline-dot g">3</div>
+            <div class="timeline-text">
+                <strong>Maestro / Esclavo:</strong> El Arduino actúa como <strong>maestro</strong>. El LCD con su módulo I2C es el <strong>esclavo</strong>. Solo el maestro inicia la comunicación.
+            </div>
+        </div>
+        <div class="timeline-item">
+            <div class="timeline-dot r">4</div>
+            <div class="timeline-text">
+                <strong>Resistencias pull-up:</strong> Las líneas SDA y SCL necesitan resistencias de <strong>4.7 kΩ</strong> a VCC. El módulo I2C del LCD ya las incluye integradas, por lo que no se necesitan agregar externamente.
+            </div>
+        </div>
+        <div class="timeline-item">
+            <div class="timeline-dot p">5</div>
+            <div class="timeline-text">
+                <strong>Velocidad:</strong> El I2C en modo estándar opera a <strong>100 kbps</strong> y en modo rápido a 400 kbps. Para el LCD es más que suficiente.
+            </div>
+        </div>
+    </div>
+
+    <div class="two-col">
+        <div class="explanation-box orange">
+            <h4>Sin I2C (modo paralelo)</h4>
+            <p>El LCD HD44780 sin módulo I2C requiere conectar hasta <strong>12 pines</strong> de Arduino: RS, RW, E, D0–D7. Esto ocupa casi todos los pines de un Arduino UNO y hace el cableado muy complicado.</p>
+        </div>
+        <div class="explanation-box">
+            <h4>Con I2C (modo serial)</h4>
+            <p>Con el módulo I2C solo se usan <strong>4 cables</strong>: VCC, GND, SDA y SCL. Libera 8 pines de Arduino y simplifica enormemente el montaje en protoboard o PCB.</p>
+        </div>
+    </div>
+</div>
+
+
+<!-- ══════════════════════════════════════════
+     SECCIÓN 3 – CONEXIÓN FÍSICA
+     ══════════════════════════════════════════ -->
+<div class="circuit-card green">
+    <div class="circuit-header">
+        <span class="circuit-title green">CONEXIÓN FÍSICA</span>
+        <span class="badge green">Diagrama de pines</span>
+    </div>
+
+    <p class="section-label">Diagrama de conexión LCD I2C → Arduino UNO</p>
+
+    <div class="diagram-container">
+        <svg viewBox="0 0 700 280" xmlns="http://www.w3.org/2000/svg">
+            <!-- Arduino UNO (izquierda) -->
+            <rect x="20" y="30" width="120" height="220" rx="12" fill="#111" stroke="rgba(0,217,255,0.4)" stroke-width="2"/>
+            <text x="80" y="55"  font-family="Space Mono" font-size="9" fill="rgba(0,217,255,0.8)" text-anchor="middle">ARDUINO UNO</text>
+
+            <!-- Pines Arduino -->
+            <rect x="130" y="90"  width="12" height="10" rx="2" fill="#c00"/>
+            <text x="125" y="98" font-family="Space Mono" font-size="8" fill="rgba(255,80,80,0.9)" text-anchor="end">5V</text>
+            <rect x="130" y="115" width="12" height="10" rx="2" fill="#333"/>
+            <text x="125" y="123" font-family="Space Mono" font-size="8" fill="rgba(255,255,255,0.6)" text-anchor="end">GND</text>
+            <rect x="130" y="140" width="12" height="10" rx="2" fill="#2244aa"/>
+            <text x="125" y="148" font-family="Space Mono" font-size="8" fill="rgba(100,150,255,0.9)" text-anchor="end">A4</text>
+            <text x="125" y="158" font-family="Space Mono" font-size="6" fill="rgba(0,217,255,0.5)" text-anchor="end">SDA</text>
+            <rect x="130" y="170" width="12" height="10" rx="2" fill="#aa8800"/>
+            <text x="125" y="178" font-family="Space Mono" font-size="8" fill="rgba(255,200,0,0.9)" text-anchor="end">A5</text>
+            <text x="125" y="188" font-family="Space Mono" font-size="6" fill="rgba(255,200,0,0.5)" text-anchor="end">SCL</text>
+
+            <!-- Cables de conexión -->
+            <!-- VCC: rojo -->
+            <path d="M 142 95 Q 280 95 280 95 Q 440 95 440 95" fill="none" stroke="rgba(255,80,80,0.8)" stroke-width="2.5" class="flow-path"/>
+            <!-- GND: negro -->
+            <path d="M 142 120 Q 280 120 280 120 Q 440 120 440 120" fill="none" stroke="rgba(180,180,180,0.7)" stroke-width="2.5" class="flow-path"/>
+            <!-- SDA: azul -->
+            <path d="M 142 145 Q 280 145 280 145 Q 440 145 440 145" fill="none" stroke="rgba(68,136,255,0.8)" stroke-width="2.5" class="flow-path"/>
+            <!-- SCL: amarillo -->
+            <path d="M 142 175 Q 280 175 280 175 Q 440 175 440 175" fill="none" stroke="rgba(255,200,0,0.8)" stroke-width="2.5" class="flow-path"/>
+
+            <!-- Módulo I2C + LCD (derecha) -->
+            <rect x="440" y="50" width="220" height="180" rx="12" fill="#0d1a0d" stroke="rgba(57,255,20,0.5)" stroke-width="2"/>
+            <!-- Pantalla simulada -->
+            <rect x="458" y="65" width="184" height="80" rx="4" fill="#1a2e1a" stroke="rgba(57,255,20,0.25)" stroke-width="1"/>
+            <text x="470" y="105" font-family="Space Mono" font-size="10" fill="rgba(57,255,20,0.85)" letter-spacing="4">LCD 16x2</text>
+            <text x="470" y="127" font-family="Space Mono" font-size="9"  fill="rgba(57,255,20,0.55)" letter-spacing="2">I2C Module</text>
+
+            <!-- Pines I2C del módulo -->
+            <rect x="440" y="90"  width="12" height="10" rx="2" fill="#c00"/>
+            <rect x="440" y="115" width="12" height="10" rx="2" fill="#333"/>
+            <rect x="440" y="140" width="12" height="10" rx="2" fill="#2244aa"/>
+            <rect x="440" y="170" width="12" height="10" rx="2" fill="#aa8800"/>
+
+            <text x="456" y="98"  font-family="Space Mono" font-size="7" fill="rgba(255,80,80,0.8)">VCC</text>
+            <text x="456" y="123" font-family="Space Mono" font-size="7" fill="rgba(255,255,255,0.6)">GND</text>
+            <text x="456" y="148" font-family="Space Mono" font-size="7" fill="rgba(100,150,255,0.9)">SDA</text>
+            <text x="456" y="178" font-family="Space Mono" font-size="7" fill="rgba(255,200,0,0.9)">SCL</text>
+
+            <!-- Potenciómetro de contraste -->
+            <rect x="458" y="165" width="184" height="45" rx="6" fill="#0a100a" stroke="rgba(57,255,20,0.2)" stroke-width="1"/>
+            <circle cx="530" cy="187" r="9" fill="#222" stroke="rgba(255,200,0,0.4)" stroke-width="1.5"/>
+            <line x1="530" y1="178" x2="530" y2="183" stroke="rgba(255,200,0,0.6)" stroke-width="2"/>
+            <text x="555" y="191" font-family="Space Mono" font-size="7" fill="rgba(255,200,0,0.6)">Contraste</text>
+
+            <!-- Leyenda cables -->
+            <circle cx="25" cy="252" r="5" fill="rgba(255,80,80,0.8)"/>
+            <text x="35" y="256" font-family="Space Mono" font-size="8" fill="rgba(255,255,255,0.5)">VCC</text>
+            <circle cx="85"  cy="252" r="5" fill="rgba(180,180,180,0.7)"/>
+            <text x="95"  y="256" font-family="Space Mono" font-size="8" fill="rgba(255,255,255,0.5)">GND</text>
+            <circle cx="145" cy="252" r="5" fill="rgba(68,136,255,0.8)"/>
+            <text x="155" y="256" font-family="Space Mono" font-size="8" fill="rgba(255,255,255,0.5)">SDA</text>
+            <circle cx="205" cy="252" r="5" fill="rgba(255,200,0,0.8)"/>
+            <text x="215" y="256" font-family="Space Mono" font-size="8" fill="rgba(255,255,255,0.5)">SCL</text>
+        </svg>
+    </div>
+
+    <!-- Tabla de pines -->
+    <p class="section-label">Tabla de conexiones</p>
+    <div style="overflow-x:auto; margin-bottom:24px;">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Pin del módulo I2C</th>
+                    <th class="cyan">Pin Arduino UNO</th>
+                    <th class="orange">Color de cable</th>
+                    <th class="green">Función</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>VCC</td>
+                    <td>5V</td>
+                    <td>🔴 Rojo</td>
+                    <td>Alimentación del LCD y módulo I2C</td>
+                </tr>
+                <tr>
+                    <td>GND</td>
+                    <td>GND</td>
+                    <td>⚫ Negro</td>
+                    <td>Tierra / referencia de voltaje</td>
+                </tr>
+                <tr>
+                    <td>SDA</td>
+                    <td>A4</td>
+                    <td>🔵 Azul</td>
+                    <td>Línea de datos I2C (bidireccional)</td>
+                </tr>
+                <tr>
+                    <td>SCL</td>
+                    <td>A5</td>
+                    <td>🟡 Amarillo</td>
+                    <td>Señal de reloj I2C (generada por Arduino)</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="alert-box green">
+        <span class="alert-icon">💡</span>
+        <p><strong>Para Arduino MEGA:</strong> los pines I2C son <strong>SDA = pin 20</strong> y <strong>SCL = pin 21</strong>. Para Arduino Nano y Mini: <strong>SDA = A4</strong> y <strong>SCL = A5</strong> (igual que UNO).</p>
+    </div>
+
+    <div class="alert-box" style="margin-top:12px;">
+        <span class="alert-icon">⚠️</span>
+        <p><strong>Ajuste de contraste:</strong> Si el LCD no muestra los caracteres o se ven bloques negros, gira con un destornillador pequeño el potenciómetro azul del módulo I2C hasta que los caracteres sean visibles.</p>
+    </div>
+</div>
+
+
+<!-- ══════════════════════════════════════════
+     SECCIÓN 4 – FUNCIONES LCD
+     ══════════════════════════════════════════ -->
+<div class="circuit-card blue">
+    <div class="circuit-header">
+        <span class="circuit-title blue">FUNCIONES PRINCIPALES</span>
+        <span class="badge blue">LiquidCrystal_I2C</span>
+    </div>
+
+    <p class="section-label">Referencia rápida de comandos</p>
+    <div style="overflow-x:auto; margin-bottom:28px;">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th class="cyan">Función</th>
+                    <th class="orange">Descripción</th>
+                    <th class="green">Ejemplo</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><code>lcd.init()</code></td>
+                    <td>Inicializa el LCD. Siempre en <code>setup()</code></td>
+                    <td><code>lcd.init();</code></td>
+                </tr>
+                <tr>
+                    <td><code>lcd.backlight()</code></td>
+                    <td>Enciende la retroiluminación LED</td>
+                    <td><code>lcd.backlight();</code></td>
+                </tr>
+                <tr>
+                    <td><code>lcd.noBacklight()</code></td>
+                    <td>Apaga la retroiluminación</td>
+                    <td><code>lcd.noBacklight();</code></td>
+                </tr>
+                <tr>
+                    <td><code>lcd.setCursor(col, fila)</code></td>
+                    <td>Mueve el cursor a columna y fila (desde 0)</td>
+                    <td><code>lcd.setCursor(0, 1);</code></td>
+                </tr>
+                <tr>
+                    <td><code>lcd.print()</code></td>
+                    <td>Imprime texto, número o variable</td>
+                    <td><code>lcd.print("Temp:");</code></td>
+                </tr>
+                <tr>
+                    <td><code>lcd.clear()</code></td>
+                    <td>Borra toda la pantalla y regresa cursor a 0,0</td>
+                    <td><code>lcd.clear();</code></td>
+                </tr>
+                <tr>
+                    <td><code>lcd.home()</code></td>
+                    <td>Mueve el cursor a posición 0,0 sin borrar</td>
+                    <td><code>lcd.home();</code></td>
+                </tr>
+                <tr>
+                    <td><code>lcd.cursor()</code></td>
+                    <td>Muestra el cursor (guión bajo)</td>
+                    <td><code>lcd.cursor();</code></td>
+                </tr>
+                <tr>
+                    <td><code>lcd.blink()</code></td>
+                    <td>Cursor parpadeante activado</td>
+                    <td><code>lcd.blink();</code></td>
+                </tr>
+                <tr>
+                    <td><code>lcd.noCursor()</code></td>
+                    <td>Oculta el cursor</td>
+                    <td><code>lcd.noCursor();</code></td>
+                </tr>
+                <tr>
+                    <td><code>lcd.scrollDisplayLeft()</code></td>
+                    <td>Desplaza todo el contenido un lugar a la izquierda</td>
+                    <td><code>lcd.scrollDisplayLeft();</code></td>
+                </tr>
+                <tr>
+                    <td><code>lcd.createChar(n, array)</code></td>
+                    <td>Crea un carácter personalizado (5×8 px)</td>
+                    <td><code>lcd.createChar(0, corazon);</code></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="explanation-box purple">
+        <h4>Sistema de coordenadas del LCD</h4>
+        <p>El cursor se posiciona con <code>lcd.setCursor(columna, fila)</code>. La <strong>columna va de 0 a 15</strong> (16 posiciones) y la <strong>fila es 0 o 1</strong> (dos filas). Por ejemplo, <code>lcd.setCursor(5, 1)</code> coloca el cursor en la columna 6 de la segunda fila. Si escribes más caracteres de los que caben en la fila, el texto se corta — no pasa a la siguiente línea automáticamente.</p>
+    </div>
+
+    <!-- Diagrama de coordenadas -->
+    <div class="diagram-container">
+        <svg viewBox="0 0 700 160" xmlns="http://www.w3.org/2000/svg">
+            <!-- Fondo LCD -->
+            <rect x="60" y="20" width="580" height="120" rx="10" fill="#0d1a0d" stroke="rgba(57,255,20,0.4)" stroke-width="2"/>
+            <!-- Fila 0 -->
+            <text x="80" y="72" font-family="Space Mono" font-size="18" fill="rgba(57,255,20,0.9)" letter-spacing="21.2">FILA 0 →</text>
+            <!-- Fila 1 -->
+            <text x="80" y="118" font-family="Space Mono" font-size="18" fill="rgba(57,255,20,0.9)" letter-spacing="21.2">FILA 1 →</text>
+            <!-- Numeración columnas -->
+            <text x="87"  y="42" font-family="Space Mono" font-size="7" fill="rgba(255,200,0,0.5)" text-anchor="middle">0</text>
+            <text x="109" y="42" font-family="Space Mono" font-size="7" fill="rgba(255,200,0,0.5)" text-anchor="middle">1</text>
+            <text x="131" y="42" font-family="Space Mono" font-size="7" fill="rgba(255,200,0,0.5)" text-anchor="middle">2</text>
+            <text x="153" y="42" font-family="Space Mono" font-size="7" fill="rgba(255,200,0,0.5)" text-anchor="middle">3</text>
+            <text x="175" y="42" font-family="Space Mono" font-size="7" fill="rgba(255,200,0,0.5)" text-anchor="middle">4</text>
+            <text x="197" y="42" font-family="Space Mono" font-size="7" fill="rgba(255,200,0,0.5)" text-anchor="middle">5</text>
+            <text x="219" y="42" font-family="Space Mono" font-size="7" fill="rgba(255,200,0,0.5)" text-anchor="middle">6</text>
+            <text x="241" y="42" font-family="Space Mono" font-size="7" fill="rgba(255,200,0,0.5)" text-anchor="middle">7</text>
+            <text x="263" y="42" font-family="Space Mono" font-size="7" fill="rgba(255,200,0,0.5)" text-anchor="middle">8</text>
+            <text x="285" y="42" font-family="Space Mono" font-size="7" fill="rgba(255,200,0,0.5)" text-anchor="middle">9</text>
+            <text x="307" y="42" font-family="Space Mono" font-size="7" fill="rgba(255,200,0,0.5)" text-anchor="middle">10</text>
+            <text x="329" y="42" font-family="Space Mono" font-size="7" fill="rgba(255,200,0,0.5)" text-anchor="middle">11</text>
+            <text x="351" y="42" font-family="Space Mono" font-size="7" fill="rgba(255,200,0,0.5)" text-anchor="middle">12</text>
+            <text x="373" y="42" font-family="Space Mono" font-size="7" fill="rgba(255,200,0,0.5)" text-anchor="middle">13</text>
+            <text x="395" y="42" font-family="Space Mono" font-size="7" fill="rgba(255,200,0,0.5)" text-anchor="middle">14</text>
+            <text x="417" y="42" font-family="Space Mono" font-size="7" fill="rgba(255,200,0,0.5)" text-anchor="middle">15</text>
+            <!-- setCursor(0,0) highlight -->
+            <rect x="76" y="50" width="22" height="26" rx="3" fill="rgba(0,217,255,0.15)" stroke="rgba(0,217,255,0.5)" stroke-width="1.5"/>
+            <text x="87" y="38" font-family="Space Mono" font-size="6" fill="rgba(0,217,255,0.7)" text-anchor="middle">0,0</text>
+            <!-- setCursor(5,1) highlight -->
+            <rect x="186" y="96" width="22" height="26" rx="3" fill="rgba(255,140,0,0.15)" stroke="rgba(255,140,0,0.5)" stroke-width="1.5"/>
+            <text x="197" y="145" font-family="Space Mono" font-size="6" fill="rgba(255,140,0,0.7)" text-anchor="middle">5,1</text>
+        </svg>
+    </div>
+</div>
+
+
+<!-- ══════════════════════════════════════════
+     SECCIÓN 5 – CÓDIGO ARDUINO
+     ══════════════════════════════════════════ -->
+<div class="circuit-card purple">
+    <div class="circuit-header">
+        <span class="circuit-title purple">CÓDIGO ARDUINO</span>
+        <span class="badge purple">Sketches</span>
+    </div>
+
+    <!-- CÓDIGO BÁSICO -->
+    <p class="section-label">Código básico — Hola Mundo en LCD I2C</p>
+    <div style="background:#0a0e14; border:1px solid rgba(0,217,255,0.2); border-radius:14px; padding:24px; overflow-x:auto; margin-bottom:28px;">
+        <pre style="font-family:'Space Mono',monospace; font-size:0.82rem; line-height:1.9; color:rgba(255,255,255,0.85);"><span style="color:#a855f7;">#include</span> <span style="color:#ff8c00;">&lt;Wire.h&gt;</span>
+<span style="color:#a855f7;">#include</span> <span style="color:#ff8c00;">&lt;LiquidCrystal_I2C.h&gt;</span>
+
+<span style="color:#57a6ff;">// Dirección I2C: 0x27 (más común) o 0x3F</span>
+<span style="color:#57a6ff;">// Columnas: 16 | Filas: 2</span>
+LiquidCrystal_I2C <span style="color:#00d9ff;">lcd</span>(0x27, 16, 2);
+
+<span style="color:#39ff14;">void</span> <span style="color:#00d9ff;">setup</span>() {
+  lcd.<span style="color:#ff8c00;">init</span>();          <span style="color:#57a6ff;">// Inicializa el módulo I2C</span>
+  lcd.<span style="color:#ff8c00;">backlight</span>();     <span style="color:#57a6ff;">// Enciende la luz de fondo</span>
+
+  lcd.<span style="color:#ff8c00;">setCursor</span>(0, 0);  <span style="color:#57a6ff;">// Columna 0, Fila 0 (primera fila)</span>
+  lcd.<span style="color:#ff8c00;">print</span>(<span style="color:#ffe600;">"Hola Mundo!"</span>);
+
+  lcd.<span style="color:#ff8c00;">setCursor</span>(0, 1);  <span style="color:#57a6ff;">// Columna 0, Fila 1 (segunda fila)</span>
+  lcd.<span style="color:#ff8c00;">print</span>(<span style="color:#ffe600;">"Arduino LCD"</span>);
+}
+
+<span style="color:#39ff14;">void</span> <span style="color:#00d9ff;">loop</span>() {
+  <span style="color:#57a6ff;">// Nada aquí — el texto se mantiene en pantalla</span>
+}</pre>
+    </div>
+
+    <!-- CÓDIGO CON SENSOR -->
+    <p class="section-label">Código avanzado — Mostrar valor de un sensor analógico</p>
+    <div style="background:#0a0e14; border:1px solid rgba(168,85,247,0.25); border-radius:14px; padding:24px; overflow-x:auto; margin-bottom:28px;">
+        <pre style="font-family:'Space Mono',monospace; font-size:0.82rem; line-height:1.9; color:rgba(255,255,255,0.85);"><span style="color:#a855f7;">#include</span> <span style="color:#ff8c00;">&lt;Wire.h&gt;</span>
+<span style="color:#a855f7;">#include</span> <span style="color:#ff8c00;">&lt;LiquidCrystal_I2C.h&gt;</span>
+
+LiquidCrystal_I2C <span style="color:#00d9ff;">lcd</span>(0x27, 16, 2);
+
+<span style="color:#a855f7;">#define</span> <span style="color:#ffe600;">SENSOR_PIN</span> A0   <span style="color:#57a6ff;">// Potenciómetro o sensor analógico</span>
+
+<span style="color:#39ff14;">void</span> <span style="color:#00d9ff;">setup</span>() {
+  lcd.<span style="color:#ff8c00;">init</span>();
+  lcd.<span style="color:#ff8c00;">backlight</span>();
+
+  lcd.<span style="color:#ff8c00;">setCursor</span>(0, 0);
+  lcd.<span style="color:#ff8c00;">print</span>(<span style="color:#ffe600;">"Valor sensor:"</span>);
+}
+
+<span style="color:#39ff14;">void</span> <span style="color:#00d9ff;">loop</span>() {
+  <span style="color:#39ff14;">int</span> valor = analogRead(<span style="color:#ffe600;">SENSOR_PIN</span>);  <span style="color:#57a6ff;">// Lee 0-1023</span>
+  <span style="color:#39ff14;">float</span> voltaje = valor * (5.0 / 1023.0); <span style="color:#57a6ff;">// Convierte a voltios</span>
+
+  lcd.<span style="color:#ff8c00;">setCursor</span>(0, 1);            <span style="color:#57a6ff;">// Segunda fila</span>
+  lcd.<span style="color:#ff8c00;">print</span>(voltaje, 2);           <span style="color:#57a6ff;">// Imprime con 2 decimales</span>
+  lcd.<span style="color:#ff8c00;">print</span>(<span style="color:#ffe600;">" V      "</span>);          <span style="color:#57a6ff;">// Espacios limpian dígitos viejos</span>
+
+  delay(300);  <span style="color:#57a6ff;">// Actualiza cada 0.3 s</span>
+}</pre>
+    </div>
+
+    <!-- CÓDIGO SCROLL -->
+    <p class="section-label">Código extra — Texto desplazable (scroll)</p>
+    <div style="background:#0a0e14; border:1px solid rgba(57,255,20,0.18); border-radius:14px; padding:24px; overflow-x:auto; margin-bottom:28px;">
+        <pre style="font-family:'Space Mono',monospace; font-size:0.82rem; line-height:1.9; color:rgba(255,255,255,0.85);"><span style="color:#a855f7;">#include</span> <span style="color:#ff8c00;">&lt;Wire.h&gt;</span>
+<span style="color:#a855f7;">#include</span> <span style="color:#ff8c00;">&lt;LiquidCrystal_I2C.h&gt;</span>
+
+LiquidCrystal_I2C <span style="color:#00d9ff;">lcd</span>(0x27, 16, 2);
+
+<span style="color:#39ff14;">void</span> <span style="color:#00d9ff;">setup</span>() {
+  lcd.<span style="color:#ff8c00;">init</span>();
+  lcd.<span style="color:#ff8c00;">backlight</span>();
+  lcd.<span style="color:#ff8c00;">print</span>(<span style="color:#ffe600;">"Texto scroll!"</span>);
+}
+
+<span style="color:#39ff14;">void</span> <span style="color:#00d9ff;">loop</span>() {
+  <span style="color:#57a6ff;">// Desplaza a la izquierda 16 veces</span>
+  <span style="color:#39ff14;">for</span> (<span style="color:#39ff14;">int</span> i = 0; i < 16; i++) {
+    lcd.<span style="color:#ff8c00;">scrollDisplayLeft</span>();
+    delay(300);
+  }
+  <span style="color:#57a6ff;">// Desplaza a la derecha 16 veces</span>
+  <span style="color:#39ff14;">for</span> (<span style="color:#39ff14;">int</span> i = 0; i < 16; i++) {
+    lcd.<span style="color:#ff8c00;">scrollDisplayRight</span>();
+    delay(300);
+  }
+}</pre>
+    </div>
+
+    <!-- Tabla de librerías -->
+    <p class="section-label">Librerías necesarias</p>
+    <div style="overflow-x:auto; margin-bottom:24px;">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Librería</th>
+                    <th class="cyan">Autor</th>
+                    <th class="orange">Para qué sirve</th>
+                    <th class="green">Dónde instalarla</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>LiquidCrystal I2C</td>
+                    <td>Frank de Brabander</td>
+                    <td>Control del LCD 16×2 por protocolo I2C</td>
+                    <td>Gestor de bibliotecas Arduino IDE</td>
+                </tr>
+                <tr>
+                    <td>Wire</td>
+                    <td>Arduino (incluida)</td>
+                    <td>Comunicación I2C (maneja pines SDA/SCL)</td>
+                    <td>Ya viene instalada en Arduino IDE</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="alert-box">
+        <span class="alert-icon">⚠️</span>
+        <p><strong>Si el LCD no muestra nada:</strong> verifica la dirección I2C. Prueba cambiando <strong>0x27</strong> por <strong>0x3F</strong> en el constructor. También puedes usar el sketch de escáner I2C (<span style="color:var(--accent-yellow);">Archivo → Ejemplos → Wire → i2c_scanner</span>) para encontrar la dirección real de tu módulo.</p>
+    </div>
+</div>
+
+
+<!-- ══════════════════════════════════════════
+     SECCIÓN 6 – ESPECIFICACIONES
+     ══════════════════════════════════════════ -->
+<div class="circuit-card">
+    <div class="circuit-header">
+        <span class="circuit-title">ESPECIFICACIONES TÉCNICAS</span>
+        <span class="badge">Datasheet</span>
+    </div>
+
+    <div class="two-col">
+        <div>
+            <p class="section-label">LCD 16×2 HD44780</p>
+            <div style="overflow-x:auto;">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Parámetro</th>
+                            <th class="cyan">Valor</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr><td>Voltaje de operación</td><td>5V DC</td></tr>
+                        <tr><td>Corriente</td><td>≈ 80 mA (con luz)</td></tr>
+                        <tr><td>Temperatura</td><td>0°C – 50°C</td></tr>
+                        <tr><td>Caracteres visibles</td><td>16 × 2 = 32</td></tr>
+                        <tr><td>Memoria CGRAM</td><td>8 caracteres custom</td></tr>
+                        <tr><td>Memoria DDRAM</td><td>80 bytes</td></tr>
+                        <tr><td>Matriz carácter</td><td>5 × 8 píxeles</td></tr>
+                        <tr><td>Ángulo de visión</td><td>6H (horizontal)</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <div>
+            <p class="section-label">Módulo I2C (PCF8574)</p>
+            <div style="overflow-x:auto;">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Parámetro</th>
+                            <th class="orange">Valor</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr><td>Chip I2C</td><td>PCF8574 / PCF8574A</td></tr>
+                        <tr><td>Dirección I2C</td><td>0x27 o 0x3F</td></tr>
+                        <tr><td>Velocidad I2C</td><td>100 kbps (estándar)</td></tr>
+                        <tr><td>Voltaje</td><td>2.5V – 6V</td></tr>
+                        <tr><td>Pull-up incluido</td><td>Sí (4.7 kΩ)</td></tr>
+                        <tr><td>Contraste</td><td>Potenciómetro ajustable</td></tr>
+                        <tr><td>Retroiluminación</td><td>Por software (on/off)</td></tr>
+                        <tr><td>Cables necesarios</td><td>Solo 4 (VCC/GND/SDA/SCL)</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="explanation-box" style="margin-top: 20px;">
+        <h4>Memoria CGRAM — Caracteres personalizados</h4>
+        <p>El LCD HD44780 tiene 8 espacios en su memoria CGRAM para guardar caracteres creados por el usuario. Cada carácter es una matriz de <strong>5 columnas × 8 filas de píxeles</strong>. Se definen con un array de bytes y se cargan con <code>lcd.createChar()</code>. Después se imprimen con <code>lcd.write()</code>. Son muy útiles para crear iconos de temperatura, batería, señal, etc.</p>
+    </div>
+
+    <!-- Ejemplo carácter custom -->
+    <p class="section-label" style="margin-top:20px;">Ejemplo — Carácter personalizado (corazón)</p>
+    <div style="background:#0a0e14; border:1px solid rgba(255,59,59,0.25); border-radius:14px; padding:24px; overflow-x:auto; margin-bottom:20px;">
+        <pre style="font-family:'Space Mono',monospace; font-size:0.82rem; line-height:1.9; color:rgba(255,255,255,0.85);"><span style="color:#57a6ff;">// Definición del carácter corazón (5×8 píxeles)</span>
+<span style="color:#39ff14;">byte</span> <span style="color:#ffe600;">corazon</span>[8] = {
+  0b00000,
+  0b01010,
+  0b11111,
+  0b11111,
+  0b01110,
+  0b00100,
+  0b00000,
+  0b00000
+};
+
+<span style="color:#39ff14;">void</span> <span style="color:#00d9ff;">setup</span>() {
+  lcd.<span style="color:#ff8c00;">init</span>();
+  lcd.<span style="color:#ff8c00;">backlight</span>();
+  lcd.<span style="color:#ff8c00;">createChar</span>(0, corazon);  <span style="color:#57a6ff;">// Guarda en posición 0</span>
+  lcd.<span style="color:#ff8c00;">setCursor</span>(0, 0);
+  lcd.<span style="color:#ff8c00;">write</span>(0);                  <span style="color:#57a6ff;">// Imprime el corazón</span>
+  lcd.<span style="color:#ff8c00;">print</span>(<span style="color:#ffe600;">" Te quiero!"</span>);
+}</pre>
+    </div>
+
+    <div class="alert-box green">
+        <span class="alert-icon">✅</span>
+        <p><strong>Buena práctica:</strong> En lugar de usar <code>lcd.clear()</code> en cada iteración del <code>loop()</code> (causa parpadeo), es mejor imprimir espacios al final de tus cadenas para sobreescribir caracteres anteriores. Ejemplo: <code>lcd.print(valor); lcd.print("   ");</code></p>
+    </div>
+</div>
+
+</div><!-- fin .content -->
+
+<footer class="footer">
+    <div class="team-credits">
+        <strong>Realizado por:</strong><br>
+        PEREZ HERNANDEZ LAURA NAOMI • FLORES FLORES MARCO ANTONIO<br>
+        Rodríguez Espinosa Génesis Ayde • González Espinosa Noé de Jesús
+    </div>
+</footer>
+
+</body>
+</html>
